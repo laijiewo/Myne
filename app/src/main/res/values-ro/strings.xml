@@ -161,4 +161,10 @@
 
     <!-- Open source libraries screen -->
     <string name="open_source_licenses_header">Licențe</string>
+    <string name="word_book_header">Cărți de cuvinte</string>
+    <string name="empty_word_books">Nimic aici!</string>
+    <string name="word_book_delete_button">Șterge</string>
+    <string name="word_book_delete_dialog_title">Ești sigur de asta?</string>
+    <string name="word_book_review_button">Revizuire</string>
+    <string name="navigation_word_books">Cărți de cuvinte</string>
 </resources>

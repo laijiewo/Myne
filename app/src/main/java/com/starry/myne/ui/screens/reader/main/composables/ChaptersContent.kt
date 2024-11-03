@@ -148,6 +148,17 @@ private fun ChapterLazyItemItem(
                 context.getString(R.string.no_app_to_handle_content).toToast(context)
             }
         },
+        onAddToWordBookRequested = {
+            val intent = Intent(
+                Intent.ACTION_VIEW,
+                Uri.parse("https://translate.google.com/?sl=auto&tl=en&text=$it")
+            )
+            try {
+                context.startActivity(intent)
+            } catch (e: ActivityNotFoundException) {
+                context.getString(R.string.no_app_to_handle_content).toToast(context)
+            }
+        },
         onDictionaryRequested = {
             val dictionaryIntent = Intent()
             val browserIntent = Intent()

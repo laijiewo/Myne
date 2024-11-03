@@ -159,4 +159,10 @@
 
     <!-- Open source libraries screen -->
     <string name="open_source_licenses_header">Licence</string>
+    <string name="word_book_header">Slovníky</string>
+    <string name="empty_word_books">Nic tu není!</string>
+    <string name="word_book_delete_button">Odstranit</string>
+    <string name="word_book_delete_dialog_title">Opravdu?</string>
+    <string name="word_book_review_button">Přehled</string>
+    <string name="navigation_word_books">Slovníky</string>
 </resources>

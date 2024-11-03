@@ -41,6 +41,8 @@ sealed class Screens(val route: String) {
         }
     }
 
+    data object WordSheetScreen: Screens("word_sheet_screen")
+
     data object WelcomeScreen : Screens("welcome_screen")
 
     data object OSLScreen : Screens("osl_screen")

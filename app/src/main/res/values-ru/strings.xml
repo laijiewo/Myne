@@ -160,4 +160,10 @@
 
     <!-- Open source libraries screen -->
     <string name="open_source_licenses_header">Лицензии</string>
+    <string name="word_book_header">Словари</string>
+    <string name="empty_word_books">Здесь пусто!</string>
+    <string name="word_book_delete_button">Удалить</string>
+    <string name="word_book_delete_dialog_title">Вы в этом уверены?</string>
+    <string name="word_book_review_button">Рецензия</string>
+    <string name="navigation_word_books">Словари</string>
 </resources>

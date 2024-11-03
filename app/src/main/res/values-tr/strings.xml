@@ -162,4 +162,10 @@
 
     <!-- Open source libraries screen -->
     <string name="open_source_licenses_header">Lisanslar</string>
+    <string name="word_book_header">"Kelime Kitapları "</string>
+    <string name="empty_word_books">Burada bir şey yok!</string>
+    <string name="word_book_delete_button">Sil</string>
+    <string name="word_book_delete_dialog_title">Bundan emin misiniz?</string>
+    <string name="word_book_review_button">" Gözden Geçirme"</string>
+    <string name="navigation_word_books">"Kelime Kitapları "</string>
 </resources>

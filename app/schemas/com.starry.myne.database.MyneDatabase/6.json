@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 5,
-    "identityHash": "a573eed7952b2ab40e4f6d8f875cbf88",
+    "version": 6,
+    "identityHash": "578c3d9e39805b8f6d93d634c6a9392a",
     "entities": [
       {
         "tableName": "book_library",
@@ -108,7 +108,7 @@
       },
       {
         "tableName": "vocabulary",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`vocabulary_id` INTEGER PRIMARY KEY AUTOINCREMENT, `source_book_id` INTEGER NOT NULL, `vocabulary` TEXT NOT NULL, `source_language` TEXT NOT NULL, `target_language` TEXT NOT NULL, `translation` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`vocabulary_id` INTEGER PRIMARY KEY AUTOINCREMENT, `source_book_id` INTEGER, `vocabulary` TEXT NOT NULL, `source_language` TEXT NOT NULL, `target_language` TEXT NOT NULL, `translation` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "vocabularyId",
@@ -120,7 +120,7 @@
             "fieldPath": "sourceBookId",
             "columnName": "source_book_id",
             "affinity": "INTEGER",
-            "notNull": true
+            "notNull": false
           },
           {
             "fieldPath": "vocabulary",
@@ -160,7 +160,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a573eed7952b2ab40e4f6d8f875cbf88')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '578c3d9e39805b8f6d93d634c6a9392a')"
     ]
   }
 }

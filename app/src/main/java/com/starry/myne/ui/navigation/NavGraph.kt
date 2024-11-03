@@ -36,6 +36,7 @@ import com.starry.myne.ui.screens.settings.composables.AboutScreen
 import com.starry.myne.ui.screens.settings.composables.OSLScreen
 import com.starry.myne.ui.screens.settings.composables.SettingsScreen
 import com.starry.myne.ui.screens.welcome.composables.WelcomeScreen
+import com.starry.myne.ui.screens.wordbooks.composables.WordBooksScreen
 
 
 @Composable
@@ -144,6 +145,25 @@ fun NavGraph(
             },
             popExitTransition = { bottomNavPopExit() }) {
             LibraryScreen(navController)
+        }
+
+        /** Word Books Screen */
+        composable(route = BottomBarScreen.WordBooks.route,
+            enterTransition = { bottomNavEnter() },
+            exitTransition = {
+                if (initialState.destination.route == Screens.WordSheetScreen.route
+                ) {
+                    exitTransition()
+                } else bottomNavExit()
+            },
+            popEnterTransition = {
+                if (initialState.destination.route == Screens.WordSheetScreen.route
+                ) {
+                    popEnterTransition()
+                } else bottomNavPopEnter()
+            },
+            popExitTransition = { bottomNavPopExit() }) {
+            WordBooksScreen(navController)
         }
 
         /** Reader Detail Screen */

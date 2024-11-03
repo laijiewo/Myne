@@ -17,6 +17,7 @@
     <string name="navigation_home">Home</string>
     <string name="navigation_categories">Categories</string>
     <string name="navigation_library">Library</string>
+    <string name="navigation_word_books">Word Books</string>
     <string name="navigation_settings">Settings</string>
 
     <!-- ToolTips -->
@@ -72,6 +73,13 @@
     <string name="library_read_button">Read</string>
     <string name="library_delete_button">Delete</string>
     <string name="library_delete_dialog_title">Are you sure about that?</string>
+
+    <!-- Word Books List screen. -->
+    <string name="word_book_header">Word Books</string>
+    <string name="empty_word_books">Nothing Here!</string>
+    <string name="word_book_review_button">Review</string>
+    <string name="word_book_delete_button">Delete</string>
+    <string name="word_book_delete_dialog_title">Are you sure about that?</string>
 
     <!-- Reader Detail Screen -->
     <string name="reader_detail_header">Ebook Reader</string>

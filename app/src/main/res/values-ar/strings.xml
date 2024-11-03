@@ -74,6 +74,8 @@
     <string name="library_delete_dialog_title">هل انت متأكد ؟</string>
 
     <!-- Reader Detail Screen -->
+    <string name="word_book_header">كتب الكلمات</string>
+    <string name="empty_word_books">لا يوجد شئ هنا</string>
     <string name="reader_detail_header">قارئ الكتاب الاليكتروني</string>
     <string name="start_reading_button">يبدأ</string>
     <string name="continue_reading_button">استمرار</string>
@@ -160,4 +162,8 @@
 
     <!-- Open source libraries screen -->
     <string name="open_source_licenses_header">التراخيص</string>
+    <string name="word_book_delete_button">امسح</string>
+    <string name="word_book_delete_dialog_title">هل انت متأكد ؟</string>
+    <string name="word_book_review_button">مراجعة</string>
+    <string name="navigation_word_books">كتب الكلمات</string>
 </resources>

@@ -161,4 +161,10 @@
 
     <!-- Open source libraries screen -->
     <string name="open_source_licenses_header">लाइसेंस</string>
+    <string name="word_book_header">शब्द पुस्तकें</string>
+    <string name="empty_word_books">यहाँ कुछ भी नहीं है!</string>
+    <string name="word_book_delete_button">हटाएं</string>
+    <string name="word_book_delete_dialog_title">क्या आप इसके बारे में सुनिश्चित हैं?</string>
+    <string name="word_book_review_button">समीक्षा</string>
+    <string name="navigation_word_books">शब्द पुस्तकें</string>
 </resources>

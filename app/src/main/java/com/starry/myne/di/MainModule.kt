@@ -50,6 +50,9 @@ class MainModule {
     @Provides
     fun provideReaderDao(myneDatabase: MyneDatabase) = myneDatabase.getReaderDao()
 
+    @Provides
+    fun provideVocabularyDao(myneDatabase: MyneDatabase) = myneDatabase.getVocabularyDao()
+
     @Singleton
     @Provides
     fun provideBooksApi(@ApplicationContext context: Context) = BookAPI(context)

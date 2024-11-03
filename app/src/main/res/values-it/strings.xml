@@ -160,4 +160,10 @@
 
     <!-- Open source libraries screen -->
     <string name="open_source_licenses_header">Licenze</string>
+    <string name="word_book_header">Libri di parole</string>
+    <string name="empty_word_books">Non c\'è nulla qui!</string>
+    <string name="word_book_delete_button">Elimina</string>
+    <string name="word_book_delete_dialog_title">Sei sicuro?</string>
+    <string name="word_book_review_button">Revisione</string>
+    <string name="navigation_word_books">Libri di parole</string>
 </resources>
