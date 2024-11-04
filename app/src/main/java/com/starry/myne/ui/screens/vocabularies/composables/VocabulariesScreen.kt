@@ -95,6 +95,13 @@ import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
 import java.io.File
 
+/**
+ * Composable function that displays the Vocabularies screen with a list of vocabularies and the option
+ * to add new vocabularies. This screen includes a floating action button to import new vocabularies
+ * and manages visibility and actions for vocabulary items.
+ *
+ * @param navController Navigation controller used to navigate between screens.
+ */
 @Composable
 fun VocabulariesScreen(navController: NavController) {
     val view = LocalView.current
@@ -136,7 +143,6 @@ fun VocabulariesScreen(navController: NavController) {
                 ExtendedFloatingActionButton(
                     onClick = {
                         view.weakHapticFeedback()
-                        // 当点击浮动按钮时，显示导入表单
                         showCreateNewVocabularyList.value = true
                     },
                     modifier = Modifier
@@ -168,7 +174,6 @@ fun VocabulariesScreen(navController: NavController) {
         if (showCreateNewVocabularyList.value) {
             VocabularyImportScreen(
                 onSaveClick = { word, sourceLang, targetLang, translation ->
-                    // 调用 ViewModel 方法保存单词到数据库
                     viewModel.insertNewVocabularyToDB(
                         context = word,
                         srcLang = sourceLang,
@@ -196,6 +201,14 @@ fun VocabulariesScreen(navController: NavController) {
 
 }
 
+/**
+ * Composable function that displays the contents of the vocabulary list.
+ * It shows a list of vocabularies or a message when no vocabularies are available.
+ *
+ * @param viewModel The ViewModel that manages the vocabulary data.
+ * @param lazyListState The state object to control the scroll position of the LazyColumn.
+ * @param paddingValues Padding values applied to the content.
+ */
 @Composable
 private fun VocabularyContents(
     viewModel: VocabulariesViewModel,
@@ -239,6 +252,15 @@ private fun VocabularyContents(
     }
 }
 
+/**
+ * Composable function that displays a single vocabulary item in a swipeable card.
+ * The card contains the vocabulary, source and target languages, and translation.
+ * It supports swipe actions to delete the vocabulary.
+ *
+ * @param modifier Modifier applied to the item.
+ * @param vocabulary The vocabulary data to display.
+ * @param viewModel The ViewModel to manage actions like deleting a vocabulary.
+ */
 @Composable
 private fun VocabularyLazyItem(
     modifier: Modifier,
@@ -270,6 +292,17 @@ private fun VocabularyLazyItem(
     }
 }
 
+/**
+ * Composable function that represents the card displaying vocabulary information.
+ * It shows the vocabulary, source and target languages, and translation, with buttons for review and delete.
+ *
+ * @param vocabulary The word or phrase to display.
+ * @param srcLang The source language of the vocabulary.
+ * @param tarLANG The target language of the vocabulary.
+ * @param translation The translation of the vocabulary.
+ * @param onReviewClick Action triggered when the review button is clicked.
+ * @param onDeleteClick Action triggered when the delete button is clicked.
+ */
 @Composable
 private fun VocabularyCard(
     vocabulary: String,
@@ -398,24 +431,18 @@ private fun LibraryCardButton(
     }
 }
 
-
-@ExperimentalMaterial3Api
-@Composable
-@Preview
-fun WordsBookScreenPreview() {
-    VocabularyCard(
-        vocabulary = "Hello",
-        srcLang = "en",
-        tarLANG = "cn",
-        translation = "你好",
-        onReviewClick = {},
-        onDeleteClick = {})
-}
-
+/**
+ * Composable function to display a screen for importing a new vocabulary.
+ * It allows the user to input a word, select source and target languages, and provide a translation.
+ * It provides "Save" and "Cancel" buttons for saving the vocabulary or dismissing the screen.
+ *
+ * @param onSaveClick Lambda function triggered when the "Save" button is clicked. Takes the word, source language, target language, and translation as parameters.
+ * @param onCancelClick Lambda function triggered when the "Cancel" button is clicked.
+ */
 @Composable
 fun VocabularyImportScreen(
-    onSaveClick: (String, String, String, String) -> Unit, // 保存按钮回调
-    onCancelClick: () -> Unit // 取消按钮回调
+    onSaveClick: (String, String, String, String) -> Unit,
+    onCancelClick: () -> Unit
 ) {
     val word = remember { mutableStateOf("") }
     val sourceLanguage = remember { mutableStateOf<BookLanguage?>(null) }
@@ -441,7 +468,6 @@ fun VocabularyImportScreen(
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            // 输入单词
             TextField(
                 value = word.value,
                 onValueChange = { word.value = it },
@@ -452,7 +478,6 @@ fun VocabularyImportScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 输入源语言选择框
             LanguageDropdownMenu(
                 label = "Source Language",
                 selectedLanguage = sourceLanguage.value,
@@ -462,7 +487,6 @@ fun VocabularyImportScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 输入目标语言选择框
             LanguageDropdownMenu(
                 label = "Target Language",
                 selectedLanguage = targetLanguage.value,
@@ -472,7 +496,6 @@ fun VocabularyImportScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 输入翻译结果
             TextField(
                 value = translation.value,
                 onValueChange = { translation.value = it },
@@ -483,7 +506,6 @@ fun VocabularyImportScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 保存和取消按钮
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -498,7 +520,6 @@ fun VocabularyImportScreen(
                                 translation.value
                             )
                         } else {
-                            // 这里可以提示用户填写完整
                         }
                     },
                     modifier = Modifier.weight(1f)
@@ -519,6 +540,16 @@ fun VocabularyImportScreen(
     }
 }
 
+/**
+ * Composable function to create a dropdown menu for selecting a language.
+ * It displays a TextField for the selected language and expands a dropdown menu
+ * when clicked, allowing the user to choose from a list of available languages.
+ *
+ * @param label The label for the TextField.
+ * @param selectedLanguage The currently selected language.
+ * @param onLanguageSelected Lambda function triggered when a language is selected.
+ * @param availableLanguages A list of languages that can be selected from the dropdown.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LanguageDropdownMenu(
