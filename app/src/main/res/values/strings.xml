@@ -99,6 +99,7 @@
     <string name="web_search">Web Search</string>
     <string name="share">Share</string>
     <string name="translate">Translate</string>
+    <string name="add_to_word_book" translatable="false">Add to word book</string>
     <string name="dictionary">Meaning</string>
 
     <!-- Settings screen. -->

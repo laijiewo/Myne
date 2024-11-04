@@ -41,6 +41,12 @@ sealed class BottomBarScreen(
         icon = R.drawable.ic_nav_library
     )
 
+    data object WordBooks : BottomBarScreen(
+        route = "word_books",
+        title = R.string.navigation_word_books,
+        icon = R.drawable.ic_nav_word_books
+    )
+
     data object Settings : BottomBarScreen(
         route = "settings",
         title = R.string.navigation_settings,

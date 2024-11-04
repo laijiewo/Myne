@@ -49,6 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.starry.myne.R
@@ -57,6 +58,7 @@ import com.starry.myne.epub.models.EpubChapter
 import com.starry.myne.helpers.toToast
 import com.starry.myne.ui.common.MyneSelectionContainer
 import com.starry.myne.ui.screens.reader.main.viewmodel.ReaderScreenState
+import com.starry.myne.ui.screens.vocabularies.viewmodels.VocabulariesViewModel
 import com.starry.myne.ui.theme.pacificoFont
 
 
@@ -66,6 +68,8 @@ fun ChaptersContent(
     lazyListState: LazyListState,
     onToggleReaderMenu: () -> Unit
 ) {
+
+    val viewModel: VocabulariesViewModel = hiltViewModel()
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         state = lazyListState
@@ -78,7 +82,8 @@ fun ChaptersContent(
             ChapterLazyItemItem(
                 chapter = chapter,
                 state = state,
-                onClick = onToggleReaderMenu
+                onClick = onToggleReaderMenu,
+                vocabulariesViewModel = viewModel
             )
         }
     }
@@ -88,7 +93,8 @@ fun ChaptersContent(
 private fun ChapterLazyItemItem(
     chapter: EpubChapter,
     state: ReaderScreenState,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    vocabulariesViewModel: VocabulariesViewModel
 ) {
     val context = LocalContext.current
     val paragraphs = remember { chunkText(chapter.body) }
@@ -149,15 +155,15 @@ private fun ChapterLazyItemItem(
             }
         },
         onAddToWordBookRequested = {
-            val intent = Intent(
-                Intent.ACTION_VIEW,
-                Uri.parse("https://translate.google.com/?sl=auto&tl=en&text=$it")
-            )
-            try {
-                context.startActivity(intent)
-            } catch (e: ActivityNotFoundException) {
-                context.getString(R.string.no_app_to_handle_content).toToast(context)
-            }
+            // 在这里添加到数据库中
+            val word = it.trim()  // 获取选定的文本
+            val sourceLang = "en"  // 这里可以使用合适的源语言
+            val targetLang = "cn"  // 这里可以使用合适的目标语言
+            val translation = "nihao"  // 这里可以先为空，稍后可以用翻译结果更新
+
+            vocabulariesViewModel.insertNewVocabularyToDB(word, sourceLang, targetLang, translation, onComplete = {})  // 插入到数据库
+
+            context.getString(R.string.add_to_word_book).toToast(context)  // 提示用户
         },
         onDictionaryRequested = {
             val dictionaryIntent = Intent()

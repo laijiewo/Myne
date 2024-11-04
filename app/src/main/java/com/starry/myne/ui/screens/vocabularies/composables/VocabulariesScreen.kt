@@ -1,4 +1,4 @@
-package com.starry.myne.ui.screens.wordbooks.composables
+package com.starry.myne.ui.screens.vocabularies.composables
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.keyframes
@@ -29,11 +29,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -75,24 +73,22 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.starry.myne.R
 import com.starry.myne.database.vocabulary.Vocabulary
-import com.starry.myne.helpers.Constants
 import com.starry.myne.helpers.book.BookLanguage
 import com.starry.myne.helpers.isScrollingUp
 import com.starry.myne.helpers.weakHapticFeedback
-import com.starry.myne.ui.common.BookCardPreview
 import com.starry.myne.ui.common.CustomTopAppBar
 import com.starry.myne.ui.common.NoBooksAvailable
 import com.starry.myne.ui.screens.main.bottomNavPadding
-import com.starry.myne.ui.screens.wordbooks.viewmodels.WordBooksViewModel
+import com.starry.myne.ui.screens.vocabularies.viewmodels.VocabulariesViewModel
 import com.starry.myne.ui.theme.poppinsFont
 import kotlinx.coroutines.launch
 import me.saket.swipe.SwipeableActionsBox
 
 @Composable
-fun WordBooksScreen(navController: NavController) {
+fun VocabulariesScreen(navController: NavController) {
     val view = LocalView.current
     val context = LocalContext.current
-    val viewModel: WordBooksViewModel = hiltViewModel()
+    val viewModel: VocabulariesViewModel = hiltViewModel()
 
     val snackBarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -152,7 +148,7 @@ fun WordBooksScreen(navController: NavController) {
             }
         }
     ) { paddingValues ->
-        LibraryContents(
+        VocabularyContents(
             viewModel = viewModel,
             lazyListState = lazyListState,
             paddingValues = paddingValues
@@ -190,8 +186,8 @@ fun WordBooksScreen(navController: NavController) {
 }
 
 @Composable
-private fun LibraryContents(
-    viewModel: WordBooksViewModel,
+private fun VocabularyContents(
+    viewModel: VocabulariesViewModel,
     lazyListState: LazyListState,
     paddingValues: PaddingValues
 ) {
