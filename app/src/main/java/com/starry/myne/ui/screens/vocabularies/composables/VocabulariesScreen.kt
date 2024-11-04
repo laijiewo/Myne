@@ -62,6 +62,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -69,20 +70,30 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.starry.myne.BuildConfig
+import com.starry.myne.MainActivity
 import com.starry.myne.R
 import com.starry.myne.database.vocabulary.Vocabulary
 import com.starry.myne.helpers.book.BookLanguage
+import com.starry.myne.helpers.book.BookUtils
+import com.starry.myne.helpers.getActivity
 import com.starry.myne.helpers.isScrollingUp
 import com.starry.myne.helpers.weakHapticFeedback
 import com.starry.myne.ui.common.CustomTopAppBar
 import com.starry.myne.ui.common.NoBooksAvailable
+import com.starry.myne.ui.screens.library.viewmodels.LibraryViewModel
 import com.starry.myne.ui.screens.main.bottomNavPadding
+import com.starry.myne.ui.screens.settings.viewmodels.SettingsViewModel
+import com.starry.myne.ui.screens.settings.viewmodels.ThemeMode
 import com.starry.myne.ui.screens.vocabularies.viewmodels.VocabulariesViewModel
 import com.starry.myne.ui.theme.poppinsFont
 import kotlinx.coroutines.launch
+import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
+import java.io.File
 
 @Composable
 fun VocabulariesScreen(navController: NavController) {
@@ -191,6 +202,8 @@ private fun VocabularyContents(
     lazyListState: LazyListState,
     paddingValues: PaddingValues
 ) {
+    val context = LocalContext.current
+    val settingsVm = (context.getActivity() as MainActivity).settingsViewModel
     val vocabularies = viewModel.allVocabulary.observeAsState(listOf()).value
 
     Column(
@@ -216,6 +229,8 @@ private fun VocabularyContents(
                     VocabularyLazyItem(
                         modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null),
                         vocabulary = item,
+                        viewModel = viewModel,
+                        settingsVm = settingsVm
                     )
                 }
             }
@@ -227,12 +242,22 @@ private fun VocabularyContents(
 @Composable
 private fun VocabularyLazyItem(
     modifier: Modifier,
-    vocabulary: Vocabulary
+    vocabulary: Vocabulary,
+    viewModel: VocabulariesViewModel,
+    settingsVm: SettingsViewModel
 ) {
     val openDeleteDialog = remember { mutableStateOf(false) }
 
+    // Swipe actions to delete word.
+    val deleteAction = SwipeAction(icon = painterResource(
+        id = if (settingsVm.getCurrentTheme() == ThemeMode.Dark) R.drawable.ic_share else R.drawable.ic_share_white
+    ), background = MaterialTheme.colorScheme.primary, onSwipe = {
+        viewModel.deleteVocabularyFromDB(vocabulary)
+    })
+
     SwipeableActionsBox(
         modifier = modifier.padding(vertical = 4.dp),
+        endActions = listOf(deleteAction),
         swipeThreshold = 85.dp
     ) {
         VocabularyCard(vocabulary = vocabulary.vocabulary,
@@ -241,7 +266,7 @@ private fun VocabularyLazyItem(
             translation = vocabulary.translation,
             onReviewClick = {
             },
-            onDeleteClick = { openDeleteDialog.value = true })
+            onDeleteClick = { viewModel.deleteVocabularyFromDB(vocabulary) })
     }
 }
 
