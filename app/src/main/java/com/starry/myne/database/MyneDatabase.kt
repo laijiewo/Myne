@@ -26,32 +26,47 @@ import com.starry.myne.database.library.LibraryDao
 import com.starry.myne.database.library.LibraryItem
 import com.starry.myne.database.progress.ProgressDao
 import com.starry.myne.database.progress.ProgressData
+import com.starry.myne.database.sampleSentence.SampleSentence
+import com.starry.myne.database.sampleSentence.SampleSentenceDao
 import com.starry.myne.database.vocabulary.Vocabulary
 import com.starry.myne.database.vocabulary.VocabularyDao
 import com.starry.myne.helpers.Constants
 
 @Database(
-    entities = [LibraryItem::class, ProgressData::class, Vocabulary::class],
-    version = 6,
+    entities = [LibraryItem::class, ProgressData::class, Vocabulary::class, SampleSentence::class],
+    version = 7,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3),
         AutoMigration(from = 4, to = 5),
-        AutoMigration(from = 5, to = 6)
+        AutoMigration(from = 5, to = 6),
+        AutoMigration(from = 6, to = 7)
     ]
 )
 abstract class MyneDatabase : RoomDatabase() {
 
     abstract fun getLibraryDao(): LibraryDao
     abstract fun getReaderDao(): ProgressDao
+    /**
+     * Provides access to the Vocabulary table DAO.
+     */
     abstract fun getVocabularyDao(): VocabularyDao
+    /**
+     * Provides access to the Sample Sentence table DAO.
+     */
+    abstract fun getSampleSentenceDao(): SampleSentenceDao
 
     companion object {
 
         private val migration3to4 = Migration(3, 4) { database ->
             database.execSQL("ALTER TABLE reader_table RENAME COLUMN book_id TO library_item_id")
         }
+
+        /**
+         * Migration from version 5 to 6:
+         * Creates a new table `vocabulary` with the specified schema.
+         */
         private val migration5to6 = Migration(5, 6) { database ->
             database.execSQL("""
             CREATE TABLE IF NOT EXISTS vocabulary (
@@ -63,6 +78,22 @@ abstract class MyneDatabase : RoomDatabase() {
                 translation TEXT NOT NULL
             )
         """)
+        }
+
+        /**
+         * Migration from version 6 to 7:
+         * Creates a new table `sample_sentence` with the specified schema.
+         */
+        private val migration6to7 = Migration(6, 7) { database ->
+            database.execSQL("""
+                CREATE TABLE IF NOT EXIST sample_sentence (
+                    sentenceId INTEGER PRIMARY KEY AUTOINCREMENT,
+                    sentence TEXT NOT NULL,
+                    resource TEXT,
+                    vocabulary_id INTEGER NOT NULL,
+                    FOREIGN KEY(vocabulary_id) REFERENCES vocabulary(vocabulary_id) ON DELETE CASCADE
+                )
+            """)
         }
 
         @Volatile
@@ -79,7 +110,7 @@ abstract class MyneDatabase : RoomDatabase() {
                     context.applicationContext,
                     MyneDatabase::class.java,
                     Constants.DATABASE_NAME
-                ).addMigrations(migration3to4, migration5to6).build()
+                ).addMigrations(migration3to4, migration5to6, migration6to7).build()
                 INSTANCE = instance
                 // return instance
                 instance
