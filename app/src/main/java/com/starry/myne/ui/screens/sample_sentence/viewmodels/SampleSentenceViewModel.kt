@@ -37,8 +37,9 @@ class SampleSentenceViewModel @Inject constructor(
      *
      * @param vocabularyId The ID of the vocabulary for which sample sentences are fetched.
      */
-    fun getAllSampleSentence(vocabularyId: Int) {
+    fun getAllSampleSentence(vocabularyId: Int):  LiveData<List<SampleSentence>>{
         allSentence = sampleSentenceDao.getAllByVocabularyId(vocabularyId)
+        return allSentence
     }
 
     /**
@@ -59,14 +60,19 @@ class SampleSentenceViewModel @Inject constructor(
      * @param vocabularyId The ID of the vocabulary for which all sample sentences should be deleted.
      */
     fun deleteAllFromDB(vocabularyId: Int) {
-        val sentenceList = allSentence.value
-        if (sentenceList != null) { // Ensure the data is not null
-            for (sentence in sentenceList) {
-                viewModelScope.launch(Dispatchers.IO) {
-                    sampleSentenceDao.delete(sentence)
+        if (::allSentence.isInitialized) {
+            allSentence = sampleSentenceDao.getAllByVocabularyId(vocabularyId)
+            val sentenceList = allSentence.value
+            if (sentenceList != null) { // Ensure the data is not null
+                for (sentence in sentenceList) {
+                    viewModelScope.launch(Dispatchers.IO) {
+                        sampleSentenceDao.delete(sentence)
+                    }
+
                 }
             }
-        } else {
+        }
+         else {
             // Handle case where the LiveData has no value
             println("No sentences to delete!")
         }

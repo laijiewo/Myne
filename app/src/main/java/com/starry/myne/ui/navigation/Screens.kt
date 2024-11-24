@@ -19,6 +19,7 @@ package com.starry.myne.ui.navigation
 const val BOOK_ID_ARG_KEY = "bookId"
 const val LIBRARY_ITEM_ID_ARG_KEY = "libraryItemId"
 const val CATEGORY_DETAIL_ARG_KEY = "category"
+const val VOCABULARY_ID = "vocabulary_id"
 
 sealed class Screens(val route: String) {
 
@@ -48,4 +49,10 @@ sealed class Screens(val route: String) {
     data object OSLScreen : Screens("osl_screen")
 
     data object AboutScreen : Screens("about_screen")
+
+    data object SampleSentenceScreen : Screens("sample_sentence_screen/{$VOCABULARY_ID}") {
+        fun withVocabularyId(id: String): String {
+            return this.route.replace("{$VOCABULARY_ID}", id)
+        }
+    }
 }

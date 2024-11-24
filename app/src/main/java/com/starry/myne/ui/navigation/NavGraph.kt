@@ -32,6 +32,7 @@ import com.starry.myne.ui.screens.detail.composables.BookDetailScreen
 import com.starry.myne.ui.screens.home.composables.HomeScreen
 import com.starry.myne.ui.screens.library.composables.LibraryScreen
 import com.starry.myne.ui.screens.reader.detail.ReaderDetailScreen
+import com.starry.myne.ui.screens.sample_sentence.composables.SampleSentenceScreen
 import com.starry.myne.ui.screens.settings.composables.AboutScreen
 import com.starry.myne.ui.screens.settings.composables.OSLScreen
 import com.starry.myne.ui.screens.settings.composables.SettingsScreen
@@ -164,6 +165,27 @@ fun NavGraph(
             },
             popExitTransition = { bottomNavPopExit() }) {
             VocabulariesScreen(navController)
+        }
+
+        /** Sample Sentence Screen */
+        composable(route = Screens.SampleSentenceScreen.route,
+            enterTransition = { bottomNavEnter() },
+            exitTransition = {
+                if (initialState.destination.route == Screens.WordSheetScreen.route
+                ) {
+                    exitTransition()
+                } else bottomNavExit()
+            },
+            popEnterTransition = {
+                if (initialState.destination.route == Screens.WordSheetScreen.route
+                ) {
+                    popEnterTransition()
+                } else bottomNavPopEnter()
+            },
+            popExitTransition = { bottomNavPopExit() })
+        { backStackEntry ->
+            val vocabularyId = backStackEntry.arguments!!.getString(VOCABULARY_ID)!!
+            SampleSentenceScreen(vocabularyId.toInt())
         }
 
         /** Reader Detail Screen */

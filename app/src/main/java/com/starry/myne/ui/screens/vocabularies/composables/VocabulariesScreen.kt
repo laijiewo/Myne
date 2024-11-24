@@ -67,25 +67,22 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.starry.myne.BuildConfig
 import com.starry.myne.MainActivity
 import com.starry.myne.R
 import com.starry.myne.database.vocabulary.Vocabulary
 import com.starry.myne.helpers.book.BookLanguage
-import com.starry.myne.helpers.book.BookUtils
 import com.starry.myne.helpers.getActivity
 import com.starry.myne.helpers.isScrollingUp
 import com.starry.myne.helpers.weakHapticFeedback
 import com.starry.myne.ui.common.CustomTopAppBar
 import com.starry.myne.ui.common.NoBooksAvailable
-import com.starry.myne.ui.screens.library.viewmodels.LibraryViewModel
+import com.starry.myne.ui.navigation.Screens
 import com.starry.myne.ui.screens.main.bottomNavPadding
+import com.starry.myne.ui.screens.sample_sentence.viewmodels.SampleSentenceViewModel
 import com.starry.myne.ui.screens.settings.viewmodels.SettingsViewModel
 import com.starry.myne.ui.screens.settings.viewmodels.ThemeMode
 import com.starry.myne.ui.screens.vocabularies.viewmodels.VocabulariesViewModel
@@ -93,12 +90,14 @@ import com.starry.myne.ui.theme.poppinsFont
 import kotlinx.coroutines.launch
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
-import java.io.File
 
 /**
- * Composable function that displays the Vocabularies screen with a list of vocabularies and the option
- * to add new vocabularies. This screen includes a floating action button to import new vocabularies
- * and manages visibility and actions for vocabulary items.
+ * Composable function that displays the main Vocabularies screen.
+ * This screen includes:
+ * - A top bar with a header.
+ * - A floating action button for importing new vocabularies.
+ * - A list of vocabularies that can be scrolled and managed.
+ * - A Snackbar to display success messages.
  *
  * @param navController Navigation controller used to navigate between screens.
  */
@@ -107,6 +106,7 @@ fun VocabulariesScreen(navController: NavController) {
     val view = LocalView.current
     val context = LocalContext.current
     val viewModel: VocabulariesViewModel = hiltViewModel()
+    val sentenceViewModel: SampleSentenceViewModel = hiltViewModel()
 
     val snackBarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -167,8 +167,10 @@ fun VocabulariesScreen(navController: NavController) {
     ) { paddingValues ->
         VocabularyContents(
             viewModel = viewModel,
+            sampleSentenceViewModel = sentenceViewModel,
             lazyListState = lazyListState,
-            paddingValues = paddingValues
+            paddingValues = paddingValues,
+            navController = navController,
         )
 
         if (showCreateNewVocabularyList.value) {
@@ -202,18 +204,23 @@ fun VocabulariesScreen(navController: NavController) {
 }
 
 /**
- * Composable function that displays the contents of the vocabulary list.
- * It shows a list of vocabularies or a message when no vocabularies are available.
+ * Composable function that displays the main content of the vocabulary list.
+ * - Displays a LazyColumn containing all vocabulary items.
+ * - Shows a placeholder message if the list is empty.
  *
- * @param viewModel The ViewModel that manages the vocabulary data.
- * @param lazyListState The state object to control the scroll position of the LazyColumn.
- * @param paddingValues Padding values applied to the content.
+ * @param viewModel The ViewModel managing vocabulary data.
+ * @param sampleSentenceViewModel The ViewModel managing sample sentence actions.
+ * @param lazyListState The LazyListState to control the scroll position.
+ * @param paddingValues Padding values for the content.
+ * @param navController The navigation controller for moving between screens.
  */
 @Composable
 private fun VocabularyContents(
     viewModel: VocabulariesViewModel,
+    sampleSentenceViewModel: SampleSentenceViewModel,
     lazyListState: LazyListState,
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
+    navController: NavController
 ) {
     val context = LocalContext.current
     val settingsVm = (context.getActivity() as MainActivity).settingsViewModel
@@ -243,7 +250,9 @@ private fun VocabularyContents(
                         modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null),
                         vocabulary = item,
                         viewModel = viewModel,
-                        settingsVm = settingsVm
+                        sampleSentenceViewModel = sampleSentenceViewModel,
+                        settingsVm = settingsVm,
+                        navController = navController
                     )
                 }
             }
@@ -253,23 +262,28 @@ private fun VocabularyContents(
 }
 
 /**
- * Composable function that displays a single vocabulary item in a swipeable card.
- * The card contains the vocabulary, source and target languages, and translation.
- * It supports swipe actions to delete the vocabulary.
+ * Composable function to display a single vocabulary item as a swipeable card.
+ * This card contains:
+ * - Vocabulary word and its translation.
+ * - Source and target languages.
+ * - Swipe actions for deleting the vocabulary.
  *
- * @param modifier Modifier applied to the item.
- * @param vocabulary The vocabulary data to display.
- * @param viewModel The ViewModel to manage actions like deleting a vocabulary.
+ * @param modifier Modifier applied to the item for styling or animations.
+ * @param vocabulary The vocabulary item to display.
+ * @param viewModel The ViewModel to manage vocabulary actions like deletion.
+ * @param sampleSentenceViewModel The ViewModel to manage related sample sentences.
+ * @param settingsVm The ViewModel managing application settings.
+ * @param navController Navigation controller for handling navigation events.
  */
 @Composable
 private fun VocabularyLazyItem(
     modifier: Modifier,
     vocabulary: Vocabulary,
     viewModel: VocabulariesViewModel,
-    settingsVm: SettingsViewModel
+    sampleSentenceViewModel: SampleSentenceViewModel,
+    settingsVm: SettingsViewModel,
+    navController: NavController
 ) {
-    val openDeleteDialog = remember { mutableStateOf(false) }
-
     // Swipe actions to delete word.
     val deleteAction = SwipeAction(icon = painterResource(
         id = if (settingsVm.getCurrentTheme() == ThemeMode.Dark) R.drawable.ic_share else R.drawable.ic_share_white
@@ -287,21 +301,33 @@ private fun VocabularyLazyItem(
             tarLANG = vocabulary.tarLang,
             translation = vocabulary.translation,
             onReviewClick = {
+                navController.navigate(
+                    Screens.SampleSentenceScreen.withVocabularyId(
+                        vocabulary.vocabularyId.toString()
+                    )
+                )
             },
-            onDeleteClick = { viewModel.deleteVocabularyFromDB(vocabulary) })
+            onDeleteClick = {
+                viewModel.deleteVocabularyFromDB(vocabulary)
+                sampleSentenceViewModel.deleteAllFromDB(vocabulary.vocabularyId!!)
+            })
     }
 }
 
 /**
- * Composable function that represents the card displaying vocabulary information.
- * It shows the vocabulary, source and target languages, and translation, with buttons for review and delete.
+ * Composable function representing the card displaying vocabulary information.
+ * This card includes:
+ * - Vocabulary word.
+ * - Source and target languages.
+ * - Translation.
+ * - Buttons for review and delete actions.
  *
- * @param vocabulary The word or phrase to display.
+ * @param vocabulary The vocabulary word or phrase.
  * @param srcLang The source language of the vocabulary.
  * @param tarLANG The target language of the vocabulary.
  * @param translation The translation of the vocabulary.
- * @param onReviewClick Action triggered when the review button is clicked.
- * @param onDeleteClick Action triggered when the delete button is clicked.
+ * @param onReviewClick Callback for when the review button is clicked.
+ * @param onDeleteClick Callback for when the delete button is clicked.
  */
 @Composable
 private fun VocabularyCard(
@@ -379,13 +405,13 @@ private fun VocabularyCard(
                 }
 
                 Row(modifier = Modifier.offset(y = (-4).dp)) {
-                    LibraryCardButton(text = stringResource(id = R.string.word_book_review_button),
+                    VocabularyCardButton(text = stringResource(id = R.string.word_book_review_button),
                         icon = ImageVector.vectorResource(id = R.drawable.ic_library_read),
                         onClick = { onReviewClick() })
 
                     Spacer(modifier = Modifier.width(10.dp))
 
-                    LibraryCardButton(text = stringResource(id = R.string.word_book_delete_button),
+                    VocabularyCardButton(text = stringResource(id = R.string.word_book_delete_button),
                         icon = Icons.Outlined.Delete,
                         onClick = { onDeleteClick() })
                 }
@@ -395,8 +421,16 @@ private fun VocabularyCard(
     }
 }
 
+/**
+ * Composable function to create a button used within the vocabulary card.
+ * This button displays an icon and a text label, and executes an action on click.
+ *
+ * @param text The label text for the button.
+ * @param icon The icon to display next to the label.
+ * @param onClick Callback triggered when the button is clicked.
+ */
 @Composable
-private fun LibraryCardButton(
+private fun VocabularyCardButton(
     text: String,
     icon: ImageVector,
     onClick: () -> Unit,
@@ -432,12 +466,14 @@ private fun LibraryCardButton(
 }
 
 /**
- * Composable function to display a screen for importing a new vocabulary.
- * It allows the user to input a word, select source and target languages, and provide a translation.
- * It provides "Save" and "Cancel" buttons for saving the vocabulary or dismissing the screen.
+ * Composable function to display a screen for importing new vocabulary items.
+ * This screen includes:
+ * - Input fields for the word, source language, target language, and translation.
+ * - Buttons to save or cancel the action.
  *
- * @param onSaveClick Lambda function triggered when the "Save" button is clicked. Takes the word, source language, target language, and translation as parameters.
- * @param onCancelClick Lambda function triggered when the "Cancel" button is clicked.
+ * @param onSaveClick Callback triggered when the "Save" button is clicked.
+ *        It provides the entered word, source language, target language, and translation as parameters.
+ * @param onCancelClick Callback triggered when the "Cancel" button is clicked.
  */
 @Composable
 fun VocabularyImportScreen(

@@ -48,10 +48,12 @@ abstract class MyneDatabase : RoomDatabase() {
 
     abstract fun getLibraryDao(): LibraryDao
     abstract fun getReaderDao(): ProgressDao
+
     /**
      * Provides access to the Vocabulary table DAO.
      */
     abstract fun getVocabularyDao(): VocabularyDao
+
     /**
      * Provides access to the Sample Sentence table DAO.
      */
@@ -68,7 +70,8 @@ abstract class MyneDatabase : RoomDatabase() {
          * Creates a new table `vocabulary` with the specified schema.
          */
         private val migration5to6 = Migration(5, 6) { database ->
-            database.execSQL("""
+            database.execSQL(
+                """
             CREATE TABLE IF NOT EXISTS vocabulary (
                 vocabulary_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 source_book_id INTEGER NOT NULL,
@@ -77,7 +80,8 @@ abstract class MyneDatabase : RoomDatabase() {
                 target_language TEXT NOT NULL,
                 translation TEXT NOT NULL
             )
-        """)
+        """
+            )
         }
 
         /**
@@ -85,15 +89,22 @@ abstract class MyneDatabase : RoomDatabase() {
          * Creates a new table `sample_sentence` with the specified schema.
          */
         private val migration6to7 = Migration(6, 7) { database ->
-            database.execSQL("""
-                CREATE TABLE IF NOT EXIST sample_sentence (
-                    sentenceId INTEGER PRIMARY KEY AUTOINCREMENT,
+            database.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS sample_sentence (
+                    sentence_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     sentence TEXT NOT NULL,
-                    resource TEXT,
+                    resource TEXT NOT NULL,
                     vocabulary_id INTEGER NOT NULL,
                     FOREIGN KEY(vocabulary_id) REFERENCES vocabulary(vocabulary_id) ON DELETE CASCADE
                 )
-            """)
+            """
+            )
+            database.execSQL(
+                """
+        CREATE INDEX IF NOT EXISTS index_sample_sentence_vocabulary_id ON sample_sentence(vocabulary_id)
+    """
+            )
         }
 
         @Volatile
