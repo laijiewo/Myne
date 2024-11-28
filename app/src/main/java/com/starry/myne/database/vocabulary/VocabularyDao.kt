@@ -7,6 +7,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.starry.myne.helpers.book.BookLanguage
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Data Access Object (DAO) interface for managing vocabulary operations in the database.
@@ -30,6 +31,10 @@ interface VocabularyDao {
      */
     @Delete
     fun delete(vocabulary: Vocabulary)
+
+
+    @Query("SELECT * FROM vocabulary WHERE vocabulary_id = :vocabularyId")
+    fun getVocabulary(vocabularyId: Int): Flow<Vocabulary>
 
     /**
      * Retrieves all vocabulary entries from the database.
