@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 /**
@@ -29,6 +30,9 @@ class VocabulariesViewModel @Inject constructor(
      */
     val allVocabulary: LiveData<List<Vocabulary>> = vocabularyDao.getAllVocabulary()
 
+    fun getVocabulary(vocabularyId: Int): Flow<Vocabulary> {
+        return vocabularyDao.getVocabulary(vocabularyId)
+    }
     /**
      * Deletes a given vocabulary item from the database.
      *
@@ -55,7 +59,7 @@ class VocabulariesViewModel @Inject constructor(
                                 translation: String,
                                 onComplete: () -> Unit) {
         val vocabulary = Vocabulary(
-            vocabulary = context,
+            vocabulary = context.lowercase(),
             srcLang = srcLang,
             tarLang = tarLang,
             translation = translation

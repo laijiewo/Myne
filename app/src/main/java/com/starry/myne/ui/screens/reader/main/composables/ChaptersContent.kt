@@ -21,10 +21,12 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.rememberScrollableState
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -39,6 +41,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerInputChange
@@ -60,13 +63,17 @@ import com.starry.myne.ui.common.MyneSelectionContainer
 import com.starry.myne.ui.screens.reader.main.viewmodel.ReaderScreenState
 import com.starry.myne.ui.screens.vocabularies.viewmodels.VocabulariesViewModel
 import com.starry.myne.ui.theme.pacificoFont
+import translate
+import translateWithDelay
 
 
 @Composable
 fun ChaptersContent(
     state: ReaderScreenState,
     lazyListState: LazyListState,
-    onToggleReaderMenu: () -> Unit
+    onToggleReaderMenu: () -> Unit,
+    showVocabularyMenu: () -> Boolean,
+    setSelected: (String, List<String>) -> Unit
 ) {
 
     val viewModel: VocabulariesViewModel = hiltViewModel()
@@ -83,6 +90,8 @@ fun ChaptersContent(
                 chapter = chapter,
                 state = state,
                 onClick = onToggleReaderMenu,
+                showVocabularyMenu = showVocabularyMenu,
+                setSelected = setSelected,
                 vocabulariesViewModel = viewModel
             )
         }
@@ -94,10 +103,13 @@ private fun ChapterLazyItemItem(
     chapter: EpubChapter,
     state: ReaderScreenState,
     onClick: () -> Unit,
+    showVocabularyMenu: () -> Boolean,
+    setSelected: (String, List<String>) -> Unit,
     vocabulariesViewModel: VocabulariesViewModel
 ) {
     val context = LocalContext.current
     val paragraphs = remember { chunkText(chapter.body) }
+    val vocabularyMenuState = remember { mutableStateOf(false) }
 
     val targetFontSize = remember(state.fontSize) {
         (state.fontSize / 5) * 0.9f
@@ -144,22 +156,30 @@ private fun ChapterLazyItemItem(
             }
         },
         onTranslateRequested = {
-            val intent = Intent(
-                Intent.ACTION_VIEW,
-                Uri.parse("https://translate.google.com/?sl=auto&tl=en&text=$it")
-            )
-            try {
-                context.startActivity(intent)
-            } catch (e: ActivityNotFoundException) {
-                context.getString(R.string.no_app_to_handle_content).toToast(context)
-            }
+            vocabularyMenuState.value = showVocabularyMenu()
+            // TODO: 需要传入选中的单词与其所在的句子
+            // STEP1: 传入选择的单词
+            val vocabulary = it.trim()
+            // TODO: 不准确，还需要改
+            // 获取段落索引
+            val sentences = findMatchingSentences(paragraphs, vocabulary)
+
+            setSelected(vocabulary, sentences)
         },
         onAddToWordBookRequested = {
             // 在这里添加到数据库中
             val word = it.trim()  // 获取选定的文本
             val sourceLang = "en"  // 这里可以使用合适的源语言
             val targetLang = "cn"  // 这里可以使用合适的目标语言
-            val translation = "nihao"  // 这里可以先为空，稍后可以用翻译结果更新
+            var translation = "" // 这里可以先为空，稍后可以用翻译结果更新
+
+            translateWithDelay(word, "zh") { result ->
+                if (result != null) {
+                    translation = result
+                } else {
+                    println("翻译失败")
+                }
+            }
 
             vocabulariesViewModel.insertNewVocabularyToDB(word, sourceLang, targetLang, translation, onComplete = {})  // 插入到数据库
 
@@ -210,7 +230,12 @@ private fun ChapterLazyItemItem(
                         // only trigger the click if the pointer hasn't moved up or down
                         // i.e only on tap gesture
                         if (up != null && down.id == up.id) {
-                            onClick()
+                            if (vocabularyMenuState.value) {
+                                showVocabularyMenu()
+                                vocabularyMenuState.value = false
+                            } else {
+                                onClick()
+                            }
                         }
                     }
                 }
@@ -288,4 +313,16 @@ private fun chunkText(text: String): List<String> {
     return text.splitToSequence("\n\n")
         .filter { it.isNotBlank() }
         .toList()
+}
+
+fun findMatchingSentences(paragraphs: List<String>, vocabulary: String): List<String> {
+    return paragraphs
+        .flatMap { paragraph ->
+            // 按标点符号分割段落，并保留标点
+            paragraph.split(Regex("(?<=[.!?。！？])")).map { sentence -> sentence.trim() }
+        }
+        .filter { sentence ->
+            // 完整单词匹配（忽略大小写）
+            Regex("\\b$vocabulary\\b", RegexOption.IGNORE_CASE).containsMatchIn(sentence)
+        }
 }

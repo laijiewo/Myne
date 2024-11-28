@@ -285,9 +285,9 @@ private fun VocabularyLazyItem(
     navController: NavController
 ) {
     // Swipe actions to delete word.
-    val deleteAction = SwipeAction(icon = painterResource(
-        id = if (settingsVm.getCurrentTheme() == ThemeMode.Dark) R.drawable.ic_share else R.drawable.ic_share_white
-    ), background = MaterialTheme.colorScheme.primary, onSwipe = {
+    val deleteAction = SwipeAction(icon = painterResource(R.drawable.ic_delete),
+        background = MaterialTheme.colorScheme.primary,
+        onSwipe = {
         viewModel.deleteVocabularyFromDB(vocabulary)
     })
 

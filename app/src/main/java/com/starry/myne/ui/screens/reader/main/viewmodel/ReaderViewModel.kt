@@ -41,8 +41,12 @@ data class ReaderScreenState(
     val isLoading: Boolean = true,
     val shouldShowLoader: Boolean = false,
     val showReaderMenu: Boolean = false,
+    val showVocabularyMenu: Boolean = false,
     val currentChapterIndex: Int = 0,
     val currentChapter: EpubChapter = EpubChapter("", "", "", ""),
+    val selectedVocabulary: String = "",
+    val selectedSentence: List<String> = emptyList(),
+    val translation: String = "translating....",
     val chapterScrollPercent: Float = 0f,
     // Book data
     val title: String = "",
@@ -204,6 +208,32 @@ class ReaderViewModel @Inject constructor(
 
     fun toggleReaderMenu() {
         _state.value = _state.value.copy(showReaderMenu = !state.value.showReaderMenu)
+    }
+
+    fun setVisibleVocabularyMenu(): Boolean {
+        _state.value = _state.value.copy(showVocabularyMenu = !state.value.showVocabularyMenu)
+        return _state.value.showVocabularyMenu
+    }
+
+    fun setTranslation(translation: String) {
+        _state.value = _state.value.copy(translation = translation)
+    }
+
+    fun getTranslation(): String {
+        return _state.value.translation
+    }
+
+    fun setSelectedVocabularyAndSentence(vocabulary: String, sentences: List<String>) {
+        _state.value = _state.value.copy(selectedVocabulary = vocabulary)
+        _state.value = _state.value.copy(selectedSentence = sentences)
+    }
+
+    fun getSelectedVocabulary(): String {
+        return _state.value.selectedVocabulary
+    }
+
+    fun getSelectedSentence(): List<String> {
+        return _state.value.selectedSentence
     }
 
     fun hideReaderInfo() {
