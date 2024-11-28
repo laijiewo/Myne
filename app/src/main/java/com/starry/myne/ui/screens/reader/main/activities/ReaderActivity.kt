@@ -20,6 +20,7 @@ import android.content.ContentResolver
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.view.View
 import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -34,6 +35,8 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.starry.myne.R
 import com.starry.myne.helpers.Constants
@@ -42,6 +45,7 @@ import com.starry.myne.ui.screens.reader.main.composables.ChaptersContent
 import com.starry.myne.ui.screens.reader.main.composables.ReaderScreen
 import com.starry.myne.ui.screens.reader.main.viewmodel.ReaderViewModel
 import com.starry.myne.ui.screens.settings.viewmodels.SettingsViewModel
+import com.starry.myne.ui.screens.vocabularies.viewmodels.VocabulariesViewModel
 import com.starry.myne.ui.theme.MyneTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -52,6 +56,7 @@ class ReaderActivity : AppCompatActivity() {
 
     private lateinit var settingsViewModel: SettingsViewModel
     private val viewModel: ReaderViewModel by viewModels()
+    private val vocabulariesViewModel: VocabulariesViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,6 +89,7 @@ class ReaderActivity : AppCompatActivity() {
 
                 ReaderScreen(
                     viewModel = viewModel,
+                    vocabulariesViewModel = vocabulariesViewModel,
                     onScrollToChapter = { lazyListState.scrollToItem(it) },
                     chaptersContent = {
                         LaunchedEffect(lazyListState) {
@@ -116,7 +122,10 @@ class ReaderActivity : AppCompatActivity() {
                         ChaptersContent(
                             state = state,
                             lazyListState = lazyListState,
-                            onToggleReaderMenu = { viewModel.toggleReaderMenu() }
+                            onToggleReaderMenu = { viewModel.toggleReaderMenu() },
+                            showVocabularyMenu = { viewModel.setVisibleVocabularyMenu() },
+                            setSelected = { vocabulary, sentence ->
+                                viewModel.setSelectedVocabularyAndSentence(vocabulary, sentence) },
                         )
 
                         // Toggle system bars based on reader menu visibility.
