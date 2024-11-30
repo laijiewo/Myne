@@ -33,6 +33,7 @@ class VocabulariesViewModel @Inject constructor(
     fun getVocabulary(vocabularyId: Int): Flow<Vocabulary> {
         return vocabularyDao.getVocabulary(vocabularyId)
     }
+
     /**
      * Deletes a given vocabulary item from the database.
      *
@@ -40,6 +41,10 @@ class VocabulariesViewModel @Inject constructor(
      */
     fun deleteVocabularyFromDB(vocabulary: Vocabulary) {
         viewModelScope.launch(Dispatchers.IO) { vocabularyDao.delete(vocabulary) }
+    }
+
+    fun isVocabularyExist(vocabulary: String): Flow<Int?> {
+        return vocabularyDao.getVocabularyId(vocabulary)
     }
 
     /**

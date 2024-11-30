@@ -32,6 +32,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -65,7 +66,6 @@ class ReaderActivity : AppCompatActivity() {
 
         // Initialize settings view model.
         settingsViewModel = ViewModelProvider(this)[SettingsViewModel::class.java]
-
         // Set UI contents.
         setContent {
             MyneTheme(settingsViewModel = settingsViewModel) {
@@ -125,7 +125,7 @@ class ReaderActivity : AppCompatActivity() {
                             onToggleReaderMenu = { viewModel.toggleReaderMenu() },
                             showVocabularyMenu = { viewModel.setVisibleVocabularyMenu() },
                             setSelected = { vocabulary, sentence ->
-                                viewModel.setSelectedVocabularyAndSentence(vocabulary, sentence) },
+                                viewModel.setSelectedVocabularyAndVocabularyIdAndSentence(vocabulary, sentence) },
                         )
 
                         // Toggle system bars based on reader menu visibility.
@@ -137,6 +137,9 @@ class ReaderActivity : AppCompatActivity() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+    }
 
     private fun setupWindowInsets() {
         // Fullscreen mode that ignores any cutout, notch etc.

@@ -36,6 +36,9 @@ interface VocabularyDao {
     @Query("SELECT * FROM vocabulary WHERE vocabulary_id = :vocabularyId")
     fun getVocabulary(vocabularyId: Int): Flow<Vocabulary>
 
+    @Query("SELECT vocabulary_id FROM vocabulary WHERE vocabulary = :vocabulary LIMIT 1")
+    fun getVocabularyId(vocabulary: String): Flow<Int?>
+
     /**
      * Retrieves all vocabulary entries from the database.
      *

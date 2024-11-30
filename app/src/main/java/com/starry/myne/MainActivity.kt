@@ -19,6 +19,7 @@ package com.starry.myne
 import android.content.pm.ShortcutManager
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -30,6 +31,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModelProvider
+import com.iflytek.cloud.SpeechConstant
+import com.iflytek.cloud.SpeechEvaluator
+import com.iflytek.cloud.SpeechUtility
+import com.starry.myne.api.models.Bridge
 import com.starry.myne.helpers.NetworkObserver
 import com.starry.myne.ui.screens.main.MainScreen
 import com.starry.myne.ui.screens.settings.viewmodels.SettingsViewModel
@@ -45,9 +50,12 @@ class MainActivity : AppCompatActivity() {
     lateinit var settingsViewModel: SettingsViewModel
     private lateinit var mainViewModel: MainViewModel
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // init speech evaluate api
+        SpeechUtility.createUtility(this, SpeechConstant.APPID +"=331900d1")
         networkObserver = NetworkObserver(applicationContext)
         settingsViewModel = ViewModelProvider(this)[SettingsViewModel::class.java]
         mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]

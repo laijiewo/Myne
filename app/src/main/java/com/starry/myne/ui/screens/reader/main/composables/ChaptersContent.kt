@@ -61,6 +61,7 @@ import com.starry.myne.epub.models.EpubChapter
 import com.starry.myne.helpers.toToast
 import com.starry.myne.ui.common.MyneSelectionContainer
 import com.starry.myne.ui.screens.reader.main.viewmodel.ReaderScreenState
+import com.starry.myne.ui.screens.reader.main.viewmodel.ReaderViewModel
 import com.starry.myne.ui.screens.vocabularies.viewmodels.VocabulariesViewModel
 import com.starry.myne.ui.theme.pacificoFont
 import translate
@@ -76,7 +77,7 @@ fun ChaptersContent(
     setSelected: (String, List<String>) -> Unit
 ) {
 
-    val viewModel: VocabulariesViewModel = hiltViewModel()
+    val viewModel: ReaderViewModel = hiltViewModel()
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         state = lazyListState
@@ -92,7 +93,7 @@ fun ChaptersContent(
                 onClick = onToggleReaderMenu,
                 showVocabularyMenu = showVocabularyMenu,
                 setSelected = setSelected,
-                vocabulariesViewModel = viewModel
+                viewModel = viewModel
             )
         }
     }
@@ -105,7 +106,7 @@ private fun ChapterLazyItemItem(
     onClick: () -> Unit,
     showVocabularyMenu: () -> Boolean,
     setSelected: (String, List<String>) -> Unit,
-    vocabulariesViewModel: VocabulariesViewModel
+    viewModel: ReaderViewModel
 ) {
     val context = LocalContext.current
     val paragraphs = remember { chunkText(chapter.body) }
@@ -156,7 +157,10 @@ private fun ChapterLazyItemItem(
             }
         },
         onTranslateRequested = {
-            vocabularyMenuState.value = showVocabularyMenu()
+            viewModel.setTranslation("translating....")
+            if (!vocabularyMenuState.value) {
+                vocabularyMenuState.value = showVocabularyMenu()
+            }
             // TODO: 需要传入选中的单词与其所在的句子
             // STEP1: 传入选择的单词
             val vocabulary = it.trim()
@@ -165,25 +169,6 @@ private fun ChapterLazyItemItem(
             val sentences = findMatchingSentences(paragraphs, vocabulary)
 
             setSelected(vocabulary, sentences)
-        },
-        onAddToWordBookRequested = {
-            // 在这里添加到数据库中
-            val word = it.trim()  // 获取选定的文本
-            val sourceLang = "en"  // 这里可以使用合适的源语言
-            val targetLang = "cn"  // 这里可以使用合适的目标语言
-            var translation = "" // 这里可以先为空，稍后可以用翻译结果更新
-
-            translateWithDelay(word, "zh") { result ->
-                if (result != null) {
-                    translation = result
-                } else {
-                    println("翻译失败")
-                }
-            }
-
-            vocabulariesViewModel.insertNewVocabularyToDB(word, sourceLang, targetLang, translation, onComplete = {})  // 插入到数据库
-
-            context.getString(R.string.add_to_word_book).toToast(context)  // 提示用户
         },
         onDictionaryRequested = {
             val dictionaryIntent = Intent()
@@ -233,6 +218,7 @@ private fun ChapterLazyItemItem(
                             if (vocabularyMenuState.value) {
                                 showVocabularyMenu()
                                 vocabularyMenuState.value = false
+                                viewModel.setTranslation("translating....")
                             } else {
                                 onClick()
                             }

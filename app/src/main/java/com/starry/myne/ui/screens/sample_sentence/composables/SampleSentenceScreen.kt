@@ -1,5 +1,7 @@
 package com.starry.myne.ui.screens.sample_sentence.composables
 
+import TextToSpeechHelper
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -36,10 +38,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,8 +61,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.iflytek.cloud.SpeechEvaluator
 import com.starry.myne.MainActivity
 import com.starry.myne.R
+import com.starry.myne.api.models.Bridge
 import com.starry.myne.database.sampleSentence.SampleSentence
 import com.starry.myne.database.vocabulary.Vocabulary
 import com.starry.myne.helpers.getActivity
@@ -71,6 +79,7 @@ import com.starry.myne.ui.theme.poppinsFont
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
 import com.starry.myne.ui.screens.sample_sentence.composables.SpellingDialog
+import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
 
 /**
  * Main composable function for the Sample Sentence Screen.
@@ -83,6 +92,22 @@ import com.starry.myne.ui.screens.sample_sentence.composables.SpellingDialog
 fun SampleSentenceScreen(
     vocabularyId: Int
 ) {
+    val context = LocalContext.current
+    var isTTSReady by remember { mutableStateOf(false) }
+    val ttsHelper = remember {
+        TextToSpeechHelper(context) { initialized ->
+            isTTSReady = initialized
+        }
+    }
+    val speechEvaluator = SpeechEvaluator.createEvaluator(context, null)
+    val bridge = Bridge(context, speechEvaluator)
+    // Cleanup TextToSpeech when this screen is disposed
+    DisposableEffect(Unit) {
+        onDispose {
+            ttsHelper.release()
+        }
+    }
+
     val viewModel: SampleSentenceViewModel = hiltViewModel()
     val vocabularyViewModel: VocabulariesViewModel = hiltViewModel()
 
@@ -108,6 +133,8 @@ fun SampleSentenceScreen(
             lazyListState = lazyListState,
             paddingValues = paddingValues,
             vocabularyId = vocabularyId,
+            textToSpeechHelper = ttsHelper,
+            bridge = bridge
         )
     }
 
@@ -129,6 +156,8 @@ private fun SampleSentenceContents(
     lazyListState: LazyListState,
     paddingValues: PaddingValues,
     vocabularyId: Int,
+    textToSpeechHelper: TextToSpeechHelper,
+    bridge: Bridge
 ) {
     val context = LocalContext.current
     val settingsVm = (context.getActivity() as MainActivity).settingsViewModel
@@ -144,12 +173,20 @@ private fun SampleSentenceContents(
     ) {
         if (sentences.isEmpty() || vocabulary == null) {
             if (vocabulary != null) {
-                VocabularyCard(vocabulary = vocabulary)
+                VocabularyCard(
+                    vocabulary = vocabulary,
+                    textToSpeechHelper = textToSpeechHelper,
+                    bridge = bridge
+                )
             } else {
                 NoBooksAvailable(text = stringResource(id = R.string.empty_word_books))
             }
         } else {
-            VocabularyCard(vocabulary = vocabulary)
+            VocabularyCard(
+                vocabulary = vocabulary,
+                textToSpeechHelper = textToSpeechHelper,
+                bridge = bridge
+            )
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -165,7 +202,7 @@ private fun SampleSentenceContents(
                         modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null),
                         sentence = item,
                         viewModel = viewModel,
-                        settingsVm = settingsVm
+                        textToSpeechHelper = textToSpeechHelper
                     )
                 }
             }
@@ -175,10 +212,14 @@ private fun SampleSentenceContents(
 }
 
 @Composable
-private fun VocabularyCard(vocabulary: Vocabulary) {
+private fun VocabularyCard(
+    vocabulary: Vocabulary,
+    textToSpeechHelper: TextToSpeechHelper,
+    bridge: Bridge
+) {
     val showDialog = remember { mutableStateOf(false) }
     val showTalkerDialog = remember { mutableStateOf(false) }
-
+    val context = LocalContext.current
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -218,7 +259,13 @@ private fun VocabularyCard(vocabulary: Vocabulary) {
                     )
                 }
                 IconButton(
-                    onClick = {},
+                    onClick = {
+                        if (textToSpeechHelper.isInitialized) {
+                            textToSpeechHelper.speak(vocabulary.vocabulary)
+                        } else {
+                            Toast.makeText(context, "TTS is not ready yet!", Toast.LENGTH_SHORT).show()
+                        }
+                    },
                     modifier = Modifier.padding(8.dp)
                     ) {
                     Icon(
@@ -313,7 +360,9 @@ private fun VocabularyCard(vocabulary: Vocabulary) {
 
     if (showTalkerDialog.value) {
         TalkerScreen(
-           onBackPressed = { showTalkerDialog.value = false }
+           onBackPressed = { showTalkerDialog.value = false },
+            vocabulary = vocabulary,
+            bridge = bridge
         )
     }
 }
@@ -333,7 +382,7 @@ private fun SampleSentenceLazyItem(
     modifier: Modifier,
     sentence: SampleSentence,
     viewModel: SampleSentenceViewModel,
-    settingsVm: SettingsViewModel
+    textToSpeechHelper: TextToSpeechHelper
 ) {
     val deleteAction = SwipeAction(
         onSwipe = {
@@ -350,6 +399,7 @@ private fun SampleSentenceLazyItem(
         SentenceCard(
             sentence = sentence.sentence,
             source = sentence.resource,
+            textToSpeechHelper = textToSpeechHelper,
             onDeleteClick = { viewModel.deleteSampleSentenceFromDB(sentence) })
     }
 }
@@ -369,8 +419,10 @@ private fun SampleSentenceLazyItem(
 private fun SentenceCard(
     sentence: String,
     source: String,
+    textToSpeechHelper: TextToSpeechHelper,
     onDeleteClick: () -> Unit
 ) {
+    val context = LocalContext.current
     val commonTextStyle = TextStyle(
         fontStyle = MaterialTheme.typography.headlineMedium.fontStyle,
         fontSize = 18.sp,
@@ -399,7 +451,8 @@ private fun SentenceCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(
-                modifier = Modifier.padding(8.dp),
+                modifier = Modifier.padding(8.dp)
+                    .weight(1f),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Row(
@@ -430,6 +483,23 @@ private fun SentenceCard(
                         onClick = { onDeleteClick() })
                 }
                 Spacer(modifier = Modifier.height(2.dp))
+            }
+            Column {
+                IconButton(
+                    onClick = {
+                        if (textToSpeechHelper.isInitialized) {
+                            textToSpeechHelper.speak(sentence)
+                        } else {
+                            Toast.makeText(context, "TTS is not ready yet!", Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_speaker),
+                        contentDescription = "speaker_icon"
+                    )
+                }
             }
         }
     }
@@ -479,6 +549,90 @@ private fun SentenceCardButton(
     }
 }
 
+@Composable
+private fun SentenceCard1(
+    sentence: String,
+    source: String,
+    onDeleteClick: () -> Unit
+) {
+    val context = LocalContext.current
+    val commonTextStyle = TextStyle(
+        fontStyle = MaterialTheme.typography.headlineMedium.fontStyle,
+        fontSize = 18.sp,
+        fontFamily = poppinsFont,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSurface
+    )
+    val sampleSentenceTextStyle = commonTextStyle.copy(
+        fontWeight = FontWeight.Bold, // 让样本句子文本加粗显示
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f) // 颜色稍深些
+    )
+    val sourceBookTextStyle = commonTextStyle.copy(
+        fontWeight = FontWeight.Normal,
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f) // 颜色稍浅些
+    )
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)
+        ),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(start = 12.dp, end = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(
+                modifier = Modifier.padding(8.dp)
+                    .weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = sentence,
+                        style = sampleSentenceTextStyle,
+                        maxLines = 16,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                Row(modifier = Modifier.offset(y = (-8).dp)) {
+                    Text(
+                        text = "Source Book: $source",
+                        style = sourceBookTextStyle,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                Row(modifier = Modifier.offset(y = (-4).dp)) {
+                    SentenceCardButton(text = stringResource(id = R.string.word_book_delete_button),
+                        icon = Icons.Outlined.Delete,
+                        onClick = { onDeleteClick() })
+                }
+                Spacer(modifier = Modifier.height(2.dp))
+            }
+            Column {
+                IconButton(
+                    onClick = {
+                    },
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_speaker),
+                        contentDescription = "speaker_icon"
+                    )
+                }
+            }
+        }
+    }
+}
+
 /**
  * Preview function to visualize how the `SentenceCard` composable will look in isolation.
  * Provides multiple sample cards with mock data for testing the design and layout.
@@ -487,14 +641,18 @@ private fun SentenceCardButton(
 @Composable
 fun PreviewSentenceCard() {
     Column {
-        VocabularyCard(
-            Vocabulary(
-                vocabulary = "Hello",
-                srcLang = "safw",
-                tarLang = "rewf",
-                translation = "nihao"
-            )
-        )
+        SentenceCard1(
+            sentence = "agoiegioaehaeghhae",
+            source = "agnoai",
+        ) { }
+//        VocabularyCard(
+//            Vocabulary(
+//                vocabulary = "Hello",
+//                srcLang = "safw",
+//                tarLang = "rewf",
+//                translation = "nihao"
+//            )
+//        )
     }
 
 }

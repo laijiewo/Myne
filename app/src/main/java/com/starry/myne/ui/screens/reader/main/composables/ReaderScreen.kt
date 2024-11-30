@@ -17,6 +17,8 @@
 
 package com.starry.myne.ui.screens.reader.main.composables
 
+import TextToSpeechHelper
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -28,9 +30,11 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,11 +42,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
@@ -68,7 +74,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.addPathNodes
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -78,15 +86,15 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.starry.myne.R
+import com.starry.myne.database.vocabulary.Vocabulary
 import com.starry.myne.helpers.toToast
 import com.starry.myne.ui.screens.reader.main.viewmodel.ReaderScreenState
 import com.starry.myne.ui.screens.reader.main.viewmodel.ReaderViewModel
+import com.starry.myne.ui.screens.sample_sentence.viewmodels.SampleSentenceViewModel
 import com.starry.myne.ui.screens.vocabularies.viewmodels.VocabulariesViewModel
 import com.starry.myne.ui.theme.poppinsFont
-import dagger.Provides
-import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import translate
 import translateWithDelay
 
 
@@ -104,6 +112,7 @@ fun ReaderScreen(
         viewModel.hideReaderInfo()
     }
 
+    val textToSpeechHelper = TextToSpeechHelper(context)
     val showFontDialog = remember { mutableStateOf(false) }
     ReaderFontChooserDialog(
         showFontDialog = showFontDialog,
@@ -162,14 +171,17 @@ fun ReaderScreen(
                             targetLang,
                             translation,
                             onComplete = {})  // 插入到数据库
-
+                        viewModel.setTranslation("translating....")
                         context.getString(R.string.add_to_word_book).toToast(context)  // 提示用户
                     },
                     getVocabulary = { viewModel.getSelectedVocabulary() },
-                    getSentence = { viewModel.getSelectedSentence()},
+                    getSentence = { viewModel.getSelectedSentence() },
                     setTranslation = { translation ->
                         viewModel.setTranslation(translation = translation)
-                        viewModel.setTranslation("translating....")
+                    },
+                    textToSpeechHelper = textToSpeechHelper,
+                    isVocabularyExist = { vocabulary ->
+                        vocabulariesViewModel.isVocabularyExist(vocabulary)
                     }
                 )
             },
@@ -276,10 +288,17 @@ private fun VocabularyMenu(
     onAddToWordBook: () -> Unit,
     getVocabulary: () -> String,
     getSentence: () -> List<String>,
-    setTranslation: (String) -> Unit
+    setTranslation: (String) -> Unit,
+    textToSpeechHelper: TextToSpeechHelper,
+    isVocabularyExist: (String) -> Flow<Int?>
 ) {
+    val context = LocalContext.current
     val vocabulary = getVocabulary()
-    var translation = remember { mutableStateOf("translating...") }
+    val vocabularyId = isVocabularyExist(vocabulary.lowercase()).collectAsState(initial = null).value
+    val translation = remember { mutableStateOf("translating....") }
+    val showSentencesDialog = remember { mutableStateOf(false) }
+    val sentenceViewModel: SampleSentenceViewModel = hiltViewModel()
+
     translateWithDelay(getVocabulary(), "zh") { result ->
         if (result != null) {
             println(result)
@@ -308,9 +327,53 @@ private fun VocabularyMenu(
                 modifier = Modifier
                     .padding(16.dp)
             ) {
-                // 单词标题
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // 单词标题
+                    Text(
+                        text = vocabulary,
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f)
+                    )
+                    IconButton(
+                        onClick = {
+                            if (vocabularyId != null) {
+                                showSentencesDialog.value = true
+                            } else {
+                                ("Add vocabulary first!").toToast(context)
+                            }
+                        },
+                        modifier = Modifier.padding(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Add,
+                            contentDescription = "add"
+                        )
+                    }
+                    IconButton(
+                        onClick = {
+                            if (textToSpeechHelper.isInitialized) {
+                                textToSpeechHelper.speak(vocabulary)
+                            } else {
+                                Toast.makeText(context, "TTS is not ready yet!", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        modifier = Modifier.padding(4.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_speaker),
+                            contentDescription = "speaker_icon"
+                        )
+                    }
+                }
                 Text(
-                    text = vocabulary,
+                    text = translation.value,
                     style = MaterialTheme.typography.headlineMedium.copy(
                         fontWeight = FontWeight.Bold
                     ),
@@ -319,57 +382,75 @@ private fun VocabularyMenu(
                     color = MaterialTheme.colorScheme.onSurface,
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-
-                Text(
-                    text = translation.value,
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold
-                ),
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                color = MaterialTheme.colorScheme.onSurface,
-                )
-
-                // 描述文本
-                Box(modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)) {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 200.dp), // 限制最大高度
-                        contentPadding = PaddingValues(vertical = 8.dp)
+                if (vocabularyId != null) {
+                    Button(
+                        onClick = {  },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = false
                     ) {
-                        items(items = getSentence()) { sentence ->
-                            Text(
-                                text = sentence,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        // 点击事件
-                                    }
-                                    .padding(vertical = 8.dp),
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                                )
-                            )
-                        }
+                        Text(text = "Added to Vocabulary Book")
                     }
-                }
-
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // 操作按钮
-                Button(
-                    onClick = { onAddToWordBook() },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = "加入生词本")
+                } else {
+                    Button(
+                        onClick = { onAddToWordBook() },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = translation.value != "translating...."
+                    ) {
+                        Text(text = "Add to Vocabulary Book")
+                    }
                 }
             }
         }
+        // 弹出对话框显示句子列表
+        if (showSentencesDialog.value && vocabularyId != null) {
+            SentenceSelectionDialog(
+                sentences = getSentence(),
+                onDismiss = { showSentencesDialog.value = false },
+                addSentenceToDB = { sentence ->
+                    sentenceViewModel.insertNewSampleSentenceToDB(
+                        sentence = sentence,
+                        resourceBookName = state.title,
+                        vocabularyId = vocabularyId,
+                        onComplete = {}
+                    )
+                    ("Add sample sentence successful!").toToast(context)
+                    showSentencesDialog.value = false
+                }
+            )
+        }
+
     }
+}
+
+@Composable
+fun SentenceSelectionDialog(
+    sentences: List<String>,
+    onDismiss: () -> Unit,
+    addSentenceToDB: (String) -> Unit
+) {
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(text = "选择例句", style = MaterialTheme.typography.headlineSmall)
+        },
+        text = {
+            LazyColumn {
+                items(sentences) { sentence ->
+                    Text(
+                        text = sentence,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { addSentenceToDB(sentence) }
+                            .padding(vertical = 8.dp),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            androidx.compose.material3.TextButton(onClick = onDismiss) {
+                Text(text = "关闭")
+            }
+        }
+    )
 }

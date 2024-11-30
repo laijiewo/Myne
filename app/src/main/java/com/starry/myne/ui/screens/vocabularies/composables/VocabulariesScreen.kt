@@ -70,6 +70,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.starry.myne.MainActivity
 import com.starry.myne.R
@@ -113,7 +114,6 @@ fun VocabulariesScreen(navController: NavController) {
     val lazyListState = rememberLazyListState()
 
     val showCreateNewVocabularyList = remember { mutableStateOf(false) }
-
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackBarHostState) },

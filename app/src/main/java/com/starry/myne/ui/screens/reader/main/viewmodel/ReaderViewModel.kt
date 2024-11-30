@@ -45,6 +45,7 @@ data class ReaderScreenState(
     val currentChapterIndex: Int = 0,
     val currentChapter: EpubChapter = EpubChapter("", "", "", ""),
     val selectedVocabulary: String = "",
+    val vocabularyId: Int = 0,
     val selectedSentence: List<String> = emptyList(),
     val translation: String = "translating....",
     val chapterScrollPercent: Float = 0f,
@@ -223,10 +224,11 @@ class ReaderViewModel @Inject constructor(
         return _state.value.translation
     }
 
-    fun setSelectedVocabularyAndSentence(vocabulary: String, sentences: List<String>) {
+    fun setSelectedVocabularyAndVocabularyIdAndSentence(vocabulary: String, sentences: List<String>) {
         _state.value = _state.value.copy(selectedVocabulary = vocabulary)
         _state.value = _state.value.copy(selectedSentence = sentences)
     }
+
 
     fun getSelectedVocabulary(): String {
         return _state.value.selectedVocabulary
