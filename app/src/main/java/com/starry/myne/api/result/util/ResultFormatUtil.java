@@ -1,5 +1,5 @@
 /**
- *
+ * This is provided by the iFlytek speech evaluation API.
  */
 package com.starry.myne.api.result.util;
 
@@ -11,19 +11,21 @@ import com.starry.myne.api.result.entity.Word;
 import java.util.ArrayList;
 
 /**
- * <p>Title: ResultFormatUtl</p>
- * <p>Description: </p>
+ * This is provided by the iFlytek speech evaluation API.
+ *
+ * <p>Title: ResultFormatUtil</p>
+ * <p>Description: Utility class to format the evaluation result details</p>
  * <p>Company: www.iflytek.com</p>
- * @author iflytek
- * @date 2015年1月19日 上午10:01:14
+ * Author: iflytek
+ * Date: January 19, 2015, 10:01:14 AM
  */
 public class ResultFormatUtil {
 
     /**
-     * 将英语评测详情按格式输出
+     * Formats English evaluation details
      *
-     * @param sentences
-     * @return 英语评测详情
+     * @param sentences Array of sentences to format
+     * @return Formatted English evaluation details
      */
     public static String formatDetails_EN(ArrayList<Sentence> sentences) {
         StringBuffer buffer = new StringBuffer();
@@ -32,8 +34,8 @@ public class ResultFormatUtil {
         }
 
         for (Sentence sentence : sentences) {
-            if ("噪音".equals(ResultTranslateUtil.getContent(sentence.content))
-                    || "静音".equals(ResultTranslateUtil.getContent(sentence.content))) {
+            if ("Noise".equals(ResultTranslateUtil.getContent(sentence.content))
+                    || "Silence".equals(ResultTranslateUtil.getContent(sentence.content))) {
                 continue;
             }
 
@@ -41,28 +43,28 @@ public class ResultFormatUtil {
                 continue;
             }
             for (Word word : sentence.words) {
-                if ("噪音".equals(ResultTranslateUtil.getContent(word.content))
-                        || "静音".equals(ResultTranslateUtil.getContent(word.content))) {
+                if ("Noise".equals(ResultTranslateUtil.getContent(word.content))
+                        || "Silence".equals(ResultTranslateUtil.getContent(word.content))) {
                     continue;
                 }
 
-                buffer.append("\n单词[" + ResultTranslateUtil.getContent(word.content) + "] ")
-                        .append("朗读：" + ResultTranslateUtil.getDpMessageInfo(word.dp_message))
-                        .append(" 得分：" + word.total_score);
+                buffer.append("\nWord [" + ResultTranslateUtil.getContent(word.content) + "] ")
+                        .append("Pronunciation: " + ResultTranslateUtil.getDpMessageInfo(word.dp_message))
+                        .append(" Score: " + word.total_score);
                 if (null == word.sylls) {
                     buffer.append("\n");
                     continue;
                 }
 
                 for (Syll syll : word.sylls) {
-                    buffer.append("\n└音节[" + ResultTranslateUtil.getContent(syll.getStdSymbol()) + "] ");
+                    buffer.append("\n└Syllable [" + ResultTranslateUtil.getContent(syll.getStdSymbol()) + "] ");
                     if (null == syll.phones) {
                         continue;
                     }
 
                     for (Phone phone : syll.phones) {
-                        buffer.append("\n\t└音素[" + ResultTranslateUtil.getContent(phone.getStdSymbol()) + "] ")
-                                .append(" 朗读：" + ResultTranslateUtil.getDpMessageInfo(phone.dp_message));
+                        buffer.append("\n\t└Phone [" + ResultTranslateUtil.getContent(phone.getStdSymbol()) + "] ")
+                                .append(" Pronunciation: " + ResultTranslateUtil.getDpMessageInfo(phone.dp_message));
                     }
 
                 }
@@ -74,10 +76,10 @@ public class ResultFormatUtil {
     }
 
     /**
-     * 将汉语评测详情按格式输出
+     * Formats Chinese evaluation details
      *
-     * @param sentences
-     * @return 汉语评测详情
+     * @param sentences Array of sentences to format
+     * @return Formatted Chinese evaluation details
      */
     public static String formatDetails_CN(ArrayList<Sentence> sentences) {
         StringBuffer buffer = new StringBuffer();
@@ -91,25 +93,25 @@ public class ResultFormatUtil {
             }
 
             for (Word word : sentence.words) {
-                buffer.append("\n词语[" + ResultTranslateUtil.getContent(word.content) + "] " + word.symbol + " 时长：" + word.time_len);
+                buffer.append("\nWord [" + ResultTranslateUtil.getContent(word.content) + "] " + word.symbol + " Duration: " + word.time_len);
                 if (null == word.sylls) {
                     continue;
                 }
 
                 for (Syll syll : word.sylls) {
-                    if ("噪音".equals(ResultTranslateUtil.getContent(syll.content))
-                            || "静音".equals(ResultTranslateUtil.getContent(syll.content))) {
+                    if ("Noise".equals(ResultTranslateUtil.getContent(syll.content))
+                            || "Silence".equals(ResultTranslateUtil.getContent(syll.content))) {
                         continue;
                     }
 
-                    buffer.append("\n└音节[" + ResultTranslateUtil.getContent(syll.content) + "] " + syll.symbol + " 时长：" + syll.time_len);
+                    buffer.append("\n└Syllable [" + ResultTranslateUtil.getContent(syll.content) + "] " + syll.symbol + " Duration: " + syll.time_len);
                     if (null == syll.phones) {
                         continue;
                     }
 
                     for (Phone phone : syll.phones) {
-                        buffer.append("\n\t└音素[" + ResultTranslateUtil.getContent(phone.content) + "] " + "时长：" + phone.time_len)
-                                .append(" 朗读：" + ResultTranslateUtil.getDpMessageInfo(phone.dp_message));
+                        buffer.append("\n\t└Phone [" + ResultTranslateUtil.getContent(phone.content) + "] " + "Duration: " + phone.time_len)
+                                .append(" Pronunciation: " + ResultTranslateUtil.getDpMessageInfo(phone.dp_message));
                     }
 
                 }

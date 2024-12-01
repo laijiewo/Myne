@@ -75,6 +75,14 @@ import com.starry.myne.ui.theme.poppinsFont
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
 
+/**
+ * Composable function to display a dialog for spelling a vocabulary word.
+ * This dialog will prompt the user to type the word, check if the input matches, and provide feedback.
+ *
+ * @param vocabulary The vocabulary item whose word needs to be spelled.
+ * @param onDismiss Callback function triggered when the dialog is dismissed.
+ * @param onSubmit Callback function triggered when the user submits their answer (Boolean indicating correctness).
+ */
 @Composable
 fun SpellingDialog(
     vocabulary: Vocabulary,
@@ -147,20 +155,4 @@ fun SpellingDialog(
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun PreviewDialog() {
-    SpellingDialog(
-        vocabulary = Vocabulary(
-            vocabulary = "Hello",
-            srcLang = "safw",
-            tarLang = "rewf",
-            translation = "nihao"
-        ),
-        onDismiss = {},
-        onSubmit = {}
-    )
-
 }

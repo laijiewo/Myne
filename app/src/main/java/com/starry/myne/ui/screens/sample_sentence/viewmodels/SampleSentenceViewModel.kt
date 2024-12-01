@@ -77,7 +77,7 @@ class SampleSentenceViewModel @Inject constructor(
             println("No sentences to delete!")
         }
     }
-    
+
     /**
      * Inserts a new sample sentence into the database.
      * Calls the provided `onComplete` callback after insertion is complete.

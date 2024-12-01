@@ -1,48 +1,47 @@
-/**
- *
- */
 package com.starry.myne.api.result.entity;
 
 import java.util.ArrayList;
 
 /**
+ * This is provided by the iFlytek speech evaluation API.
+ *
  * <p>Title: Sentence</p>
- * <p>Description: 句子，对应于xml结果中的sentence标签</p>
+ * <p>Description: Sentence, corresponding to the sentence tag in the XML result</p>
  * <p>Company: www.iflytek.com</p>
- * @author iflytek
- * @date 2015年1月12日 下午4:10:09
+ * Author: iflytek
+ * Date: January 12, 2015, 4:10:09 PM
  */
 public class Sentence {
     /**
-     * 开始帧位置，每帧相当于10ms
+     * Starting frame position, each frame corresponds to 10ms
      */
     public int beg_pos;
     /**
-     * 结束帧位置
+     * Ending frame position
      */
     public int end_pos;
     /**
-     * 句子内容
+     * Sentence content
      */
     public String content;
     /**
-     * 总得分
+     * Total score
      */
     public float total_score;
     /**
-     * 时长（单位：帧，每帧相当于10ms）（cn）
+     * Duration (unit: frame, each frame corresponds to 10ms) (cn)
      */
     public int time_len;
     /**
-     * 句子的索引（en）
+     * Index of the sentence (en)
      */
     public int index;
     /**
-     * 单词数（en）
+     * Word count (en)
      */
     public int word_count;
     /**
-     * sentence包括的word
+     * Words included in the sentence
      */
     public ArrayList<Word> words;
 }

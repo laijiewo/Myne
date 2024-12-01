@@ -17,7 +17,6 @@
 
 package com.starry.myne.ui.screens.reader.main.composables
 
-import TextToSpeechHelper
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -28,21 +27,15 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -73,20 +66,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.addPathNodes
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.starry.myne.R
-import com.starry.myne.database.vocabulary.Vocabulary
+import com.starry.myne.api.TextToSpeechHelper
+import com.starry.myne.api.translateWithDelay
 import com.starry.myne.helpers.toToast
 import com.starry.myne.ui.screens.reader.main.viewmodel.ReaderScreenState
 import com.starry.myne.ui.screens.reader.main.viewmodel.ReaderViewModel
@@ -95,7 +83,6 @@ import com.starry.myne.ui.screens.vocabularies.viewmodels.VocabulariesViewModel
 import com.starry.myne.ui.theme.poppinsFont
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import translateWithDelay
 
 
 @Composable
@@ -161,18 +148,19 @@ fun ReaderScreen(
                     state = state,
                     onAddToWordBook = {
                         val vocabulary = viewModel.getSelectedVocabulary()
-                        val sourceLang = "en"  // 这里可以使用合适的源语言
-                        val targetLang = "cn"  // 这里可以使用合适的目标语言
-                        val translation = viewModel.getTranslation()  // 这里可以先为空，稍后可以用翻译结果更新
+                        val sourceLang = "en"
+                        val targetLang = "cn"
+                        val translation = viewModel.getTranslation()
 
+                        // Add to database
                         vocabulariesViewModel.insertNewVocabularyToDB(
                             vocabulary,
                             sourceLang,
                             targetLang,
                             translation,
-                            onComplete = {})  // 插入到数据库
+                            onComplete = {})
                         viewModel.setTranslation("translating....")
-                        context.getString(R.string.add_to_word_book).toToast(context)  // 提示用户
+                        context.getString(R.string.add_to_word_book).toToast(context)
                     },
                     getVocabulary = { viewModel.getSelectedVocabulary() },
                     getSentence = { viewModel.getSelectedSentence() },
@@ -282,6 +270,18 @@ private fun ReaderTopAppBar(
     }
 }
 
+/**
+ * A Composable that displays a vocabulary menu with options to add the word to the vocabulary book,
+ * listen to its pronunciation, and show translations.
+ *
+ * @param state The current state of the reader screen, including whether the vocabulary menu is shown.
+ * @param onAddToWordBook A lambda that adds the selected vocabulary to the vocabulary book.
+ * @param getVocabulary A function that returns the selected vocabulary word.
+ * @param getSentence A function that returns the selected sentence.
+ * @param setTranslation A function that sets the translation of the vocabulary.
+ * @param textToSpeechHelper An instance of the TextToSpeechHelper to manage text-to-speech functionality.
+ * @param isVocabularyExist A function that checks if the vocabulary word already exists in the database.
+ */
 @Composable
 private fun VocabularyMenu(
     state: ReaderScreenState,
@@ -299,6 +299,7 @@ private fun VocabularyMenu(
     val showSentencesDialog = remember { mutableStateOf(false) }
     val sentenceViewModel: SampleSentenceViewModel = hiltViewModel()
 
+    // Trigger translation on vocabulary
     translateWithDelay(getVocabulary(), "zh") { result ->
         if (result != null) {
             println(result)
@@ -308,6 +309,8 @@ private fun VocabularyMenu(
             ("translate failed").toToast(context)
         }
     }
+
+    // Animated visibility of the vocabulary menu
     AnimatedVisibility(
         visible = state.showVocabularyMenu,
         enter = expandVertically(initialHeight = { 0 }, expandFrom = Alignment.Top)
@@ -315,6 +318,7 @@ private fun VocabularyMenu(
         exit = shrinkVertically(targetHeight = { 0 }, shrinkTowards = Alignment.Top)
                 + fadeOut(),
     ) {
+        // Surface for displaying the vocabulary menu
         Surface(
             color = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(16.dp),
@@ -323,14 +327,16 @@ private fun VocabularyMenu(
                 .padding(16.dp)
                 .fillMaxWidth()
         ) {
+            // Column to arrange elements vertically
             Column(
                 modifier = Modifier
                     .padding(16.dp)
             ) {
+                // Row for displaying the vocabulary word and buttons
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // 单词标题
+                    // Vocabulary title
                     Text(
                         text = vocabulary,
                         style = MaterialTheme.typography.headlineMedium.copy(
@@ -341,6 +347,7 @@ private fun VocabularyMenu(
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f)
                     )
+                    // Button to show sentences containing the vocabulary
                     IconButton(
                         onClick = {
                             if (vocabularyId != null) {
@@ -356,6 +363,7 @@ private fun VocabularyMenu(
                             contentDescription = "add"
                         )
                     }
+                    // Button to trigger text-to-speech for the vocabulary word
                     IconButton(
                         onClick = {
                             if (textToSpeechHelper.isInitialized) {
@@ -372,6 +380,7 @@ private fun VocabularyMenu(
                         )
                     }
                 }
+                // Display the translation
                 Text(
                     text = translation.value,
                     style = MaterialTheme.typography.headlineMedium.copy(
@@ -382,6 +391,7 @@ private fun VocabularyMenu(
                     color = MaterialTheme.colorScheme.onSurface,
                 )
 
+                // Button to add the word to the vocabulary book if not already added
                 if (vocabularyId != null) {
                     Button(
                         onClick = {  },
@@ -401,7 +411,7 @@ private fun VocabularyMenu(
                 }
             }
         }
-        // 弹出对话框显示句子列表
+        // Display a dialog with a list of sentences if the dialog should be shown and the vocabulary exists in the database
         if (showSentencesDialog.value && vocabularyId != null) {
             SentenceSelectionDialog(
                 sentences = getSentence(),
@@ -422,6 +432,13 @@ private fun VocabularyMenu(
     }
 }
 
+/**
+ * A composable dialog that allows the user to select a sentence to add to the database.
+ *
+ * @param sentences A list of sentences to display in the dialog.
+ * @param onDismiss A lambda function to be called when the dialog is dismissed.
+ * @param addSentenceToDB A lambda function to be called when a sentence is selected.
+ */
 @Composable
 fun SentenceSelectionDialog(
     sentences: List<String>,
@@ -431,7 +448,7 @@ fun SentenceSelectionDialog(
     androidx.compose.material3.AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text(text = "选择例句", style = MaterialTheme.typography.headlineSmall)
+            Text(text = "Select sample sentence", style = MaterialTheme.typography.headlineSmall)
         },
         text = {
             LazyColumn {
@@ -449,7 +466,7 @@ fun SentenceSelectionDialog(
         },
         confirmButton = {
             androidx.compose.material3.TextButton(onClick = onDismiss) {
-                Text(text = "关闭")
+                Text(text = "Close")
             }
         }
     )

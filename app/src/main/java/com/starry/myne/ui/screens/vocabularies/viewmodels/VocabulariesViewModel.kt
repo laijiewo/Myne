@@ -30,6 +30,12 @@ class VocabulariesViewModel @Inject constructor(
      */
     val allVocabulary: LiveData<List<Vocabulary>> = vocabularyDao.getAllVocabulary()
 
+    /**
+     * Retrieves a specific vocabulary by its ID from the database.
+     *
+     * @param vocabularyId The ID of the vocabulary to retrieve.
+     * @return A Flow that emits the Vocabulary object corresponding to the provided ID.
+     */
     fun getVocabulary(vocabularyId: Int): Flow<Vocabulary> {
         return vocabularyDao.getVocabulary(vocabularyId)
     }
@@ -43,6 +49,12 @@ class VocabulariesViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) { vocabularyDao.delete(vocabulary) }
     }
 
+    /**
+     * Checks if a vocabulary already exists in the database by its string value.
+     *
+     * @param vocabulary The word to check in the database.
+     * @return A Flow that emits the vocabulary ID if it exists, or null if not.
+     */
     fun isVocabularyExist(vocabulary: String): Flow<Int?> {
         return vocabularyDao.getVocabularyId(vocabulary)
     }

@@ -1,20 +1,19 @@
-/**
- *
- */
 package com.starry.myne.api.result.entity;
 
 import java.util.HashMap;
 
 /**
+ * This is provided by the iFlytek speech evaluation API.
+ *
  * <p>Title: Phone</p>
- * <p>Description: 音素，对应于xml结果中的Phone标签</p>
+ * <p>Description: Phoneme, corresponding to the Phone tag in the XML result</p>
  * <p>Company: www.iflytek.com</p>
- * @author iflytek
- * @date 2015年1月12日 下午3:55:56
+ * Author: iflytek
+ * Date: January 12, 2015, 3:55:56 PM
  */
 public class Phone {
     /**
-     * 讯飞音标-标准音标映射表（en）
+     * Mapping table between iFlytek phonetic symbols and standard phonetic symbols (en)
      */
     public static HashMap<String, String> phone_map = new HashMap<String, String>();
 
@@ -70,28 +69,28 @@ public class Phone {
     }
 
     /**
-     * 开始帧位置，每帧相当于10ms
+     * Starting frame position, each frame corresponds to 10ms
      */
     public int beg_pos;
     /**
-     * 结束帧位置
+     * Ending frame position
      */
     public int end_pos;
     /**
-     * 音素内容
+     * Phoneme content
      */
     public String content;
     /**
-     * 增漏读信息：0（正确），16（漏读），32（增读），64（回读），128（替换）
+     * Deletion and insertion message: 0 (correct), 16 (omission), 32 (insertion), 64 (repeat), 128 (replacement)
      */
     public int dp_message;
     /**
-     * 时长（单位：帧，每帧相当于10ms）（cn）
+     * Duration (unit: frame, each frame corresponds to 10ms) (cn)
      */
     public int time_len;
 
     /**
-     * 得到content对应的标准音标（en）
+     * Get the standard phonetic symbol corresponding to the content (en)
      */
     public String getStdSymbol() {
         return getStdSymbol(content);

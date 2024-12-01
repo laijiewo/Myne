@@ -1,6 +1,3 @@
-/**
- *
- */
 package com.starry.myne.api.result;
 
 import com.starry.myne.api.result.entity.Sentence;
@@ -8,51 +5,53 @@ import com.starry.myne.api.result.entity.Sentence;
 import java.util.ArrayList;
 
 /**
+ * This is provided by the iFlytek speech evaluation API.
+ *
  * <p>Title: Result</p>
- * <p>Description: 评测结果</p>
+ * <p>Description: Class representing the evaluation result</p>
  * <p>Company: www.iflytek.com</p>
- * @author iflytek
- * @date 2015年1月12日 下午4:58:38
+ * Author: iflytek
+ * Date: January 12, 2015, 4:58:38 PM
  */
 public class Result {
     /**
-     * 评测语种：en（英文）、cn（中文）
+     * Evaluation language: en (English), cn (Chinese)
      */
     public String language;
     /**
-     * 评测种类：read_syllable（cn单字）、read_word（词语）、read_sentence（句子）
+     * Evaluation category: read_syllable (cn single character), read_word (word), read_sentence (sentence)
      */
     public String category;
     /**
-     * 开始帧位置，每帧相当于10ms
+     * Start frame position, each frame is equivalent to 10ms
      */
     public int beg_pos;
     /**
-     * 结束帧位置
+     * End frame position
      */
     public int end_pos;
     /**
-     * 评测内容
+     * Evaluation content
      */
     public String content;
     /**
-     * 总得分
+     * Total score
      */
     public float total_score;
     /**
-     * 时长（cn）
+     * Duration (cn)
      */
     public int time_len;
     /**
-     * 异常信息（en）
+     * Exception information (en)
      */
     public String except_info;
     /**
-     * 是否乱读（cn）
+     * Whether misreading occurred (cn)
      */
     public boolean is_rejected;
     /**
-     * xml结果中的sentence标签
+     * List of sentences corresponding to the xml result's sentence tag
      */
     public ArrayList<Sentence> sentences;
 }

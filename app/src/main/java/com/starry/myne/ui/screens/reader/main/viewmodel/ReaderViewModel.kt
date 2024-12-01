@@ -44,10 +44,6 @@ data class ReaderScreenState(
     val showVocabularyMenu: Boolean = false,
     val currentChapterIndex: Int = 0,
     val currentChapter: EpubChapter = EpubChapter("", "", "", ""),
-    val selectedVocabulary: String = "",
-    val vocabularyId: Int = 0,
-    val selectedSentence: List<String> = emptyList(),
-    val translation: String = "translating....",
     val chapterScrollPercent: Float = 0f,
     // Book data
     val title: String = "",
@@ -60,6 +56,11 @@ data class ReaderScreenState(
     // Typography
     val fontSize: Int = 100,
     val fontFamily: ReaderFont = ReaderFont.System,
+    // Selected vocabularies and sample sentences
+    val selectedVocabulary: String = "",
+    val vocabularyId: Int = 0,
+    val selectedSentence: List<String> = emptyList(),
+    val translation: String = "translating....",
 )
 
 @HiltViewModel

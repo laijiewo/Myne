@@ -1,16 +1,15 @@
-/**
- *
- */
 package com.starry.myne.api.result.util;
 
 import java.util.HashMap;
 
 /**
- * <p>Title: ResultTranslateUtl</p>
- * <p>Description: </p>
+ * This is provided by the iFlytek speech evaluation API.
+ *
+ * <p>Title: ResultTranslateUtil</p>
+ * <p>Description: Utility class to translate result details</p>
  * <p>Company: www.iflytek.com</p>
- * @author iflytek
- * @date 2015年1月13日 下午6:05:03
+ * Author: iflytek
+ * Date: January 13, 2015, 6:05:03 PM
  */
 public class ResultTranslateUtil {
 
@@ -18,15 +17,15 @@ public class ResultTranslateUtil {
     private static HashMap<String, String> special_content_map = new HashMap<String, String>();
 
     static {
-        dp_message_map.put(0, "正常");
-        dp_message_map.put(16, "漏读");
-        dp_message_map.put(32, "增读");
-        dp_message_map.put(64, "回读");
-        dp_message_map.put(128, "替换");
+        dp_message_map.put(0, "Normal");
+        dp_message_map.put(16, "Omitted");
+        dp_message_map.put(32, "Inserted");
+        dp_message_map.put(64, "Repeated");
+        dp_message_map.put(128, "Replaced");
 
-        special_content_map.put("sil", "静音");
-        special_content_map.put("silv", "静音");
-        special_content_map.put("fil", "噪音");
+        special_content_map.put("sil", "Silence");
+        special_content_map.put("silv", "Silence");
+        special_content_map.put("fil", "Noise");
     }
 
     public static String getDpMessageInfo(int dp_message) {

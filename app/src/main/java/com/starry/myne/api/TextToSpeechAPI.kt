@@ -1,8 +1,15 @@
+package com.starry.myne.api
+
 import android.content.Context
 import android.speech.tts.TextToSpeech
 import android.widget.Toast
 import java.util.*
 
+/**
+ * A helper class to manage Text-to-Speech functionality
+ * @param context The context for accessing system services
+ * @param onInitialized Optional callback to indicate whether TTS was successfully initialized
+ */
 class TextToSpeechHelper(
     private val context: Context,
     private val onInitialized: ((Boolean) -> Unit)? = null // Optional callback
@@ -50,22 +57,6 @@ class TextToSpeechHelper(
         if (isInitialized) {
             tts?.setLanguage(locale)
         }
-    }
-
-    /**
-     * Set the pitch of the speech
-     * @param pitch The pitch (default is 1.0f)
-     */
-    fun setPitch(pitch: Float) {
-        tts?.setPitch(pitch)
-    }
-
-    /**
-     * Set the speech rate
-     * @param rate The speech rate (default is 1.0f)
-     */
-    fun setSpeechRate(rate: Float) {
-        tts?.setSpeechRate(rate)
     }
 
     /**

@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -30,20 +29,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-
 import com.starry.myne.R
 import android.Manifest
 import android.widget.Toast.makeText
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.res.colorResource
-import com.iflytek.cloud.SpeechEvaluator
 import com.starry.myne.api.models.Bridge
 import com.starry.myne.database.vocabulary.Vocabulary
 
+/**
+ * Composable function to handle the Talker screen where users can record and evaluate their pronunciation.
+ * The screen displays a button to start recording, and manages the recording state and permission handling.
+ *
+ * @param onBackPressed Callback function to handle back press event.
+ * @param vocabulary The vocabulary to be pronounced and evaluated.
+ * @param bridge The bridge used for interacting with external APIs for recording and evaluation.
+ */
 @Composable
 fun TalkerScreen(
     onBackPressed: () -> Unit,
@@ -154,6 +157,14 @@ fun TalkerScreen(
     }
 }
 
+/**
+ * Composable function to request the necessary audio permission from the user.
+ * This function checks if the permission is granted and handles the user's response.
+ *
+ * @param context The context in which the permission request is made.
+ * @param onPermissionGranted Callback triggered if permission is granted.
+ * @param onPermissionDenied Callback triggered if permission is denied.
+ */
 @Composable
 fun RequestAudioPermission(
     context: Context,

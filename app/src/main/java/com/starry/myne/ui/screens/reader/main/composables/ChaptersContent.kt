@@ -62,10 +62,7 @@ import com.starry.myne.helpers.toToast
 import com.starry.myne.ui.common.MyneSelectionContainer
 import com.starry.myne.ui.screens.reader.main.viewmodel.ReaderScreenState
 import com.starry.myne.ui.screens.reader.main.viewmodel.ReaderViewModel
-import com.starry.myne.ui.screens.vocabularies.viewmodels.VocabulariesViewModel
 import com.starry.myne.ui.theme.pacificoFont
-import translate
-import translateWithDelay
 
 
 @Composable
@@ -156,18 +153,23 @@ private fun ChapterLazyItemItem(
                 context.getString(R.string.no_app_to_handle_content).toToast(context)
             }
         },
+        // Translation request handler when the user initiates translation.
         onTranslateRequested = {
+            // Set a temporary text to show that translation is in progress.
             viewModel.setTranslation("translating....")
+
+            // Check if the vocabulary menu is visible. If not, display it.
             if (!vocabularyMenuState.value) {
                 vocabularyMenuState.value = showVocabularyMenu()
             }
-            // TODO: 需要传入选中的单词与其所在的句子
-            // STEP1: 传入选择的单词
+
+            // Trim any unnecessary whitespace from the selected vocabulary word.
             val vocabulary = it.trim()
-            // TODO: 不准确，还需要改
-            // 获取段落索引
+
+            // Find sentences in the paragraphs that contain the selected vocabulary word.
             val sentences = findMatchingSentences(paragraphs, vocabulary)
 
+            // Update the UI or data model with the selected vocabulary word and its matching sentences.
             setSelected(vocabulary, sentences)
         },
         onDictionaryRequested = {
@@ -215,11 +217,18 @@ private fun ChapterLazyItemItem(
                         // only trigger the click if the pointer hasn't moved up or down
                         // i.e only on tap gesture
                         if (up != null && down.id == up.id) {
+                            // If the vocabulary menu is visible
                             if (vocabularyMenuState.value) {
+                                // Show the vocabulary menu (this might open or refresh the UI) and set the state to false.
                                 showVocabularyMenu()
+
+                                // Hide the vocabulary menu by setting the state to false.
                                 vocabularyMenuState.value = false
+
+                                // Update the translation message to indicate translation is in progress.
                                 viewModel.setTranslation("translating....")
                             } else {
+                                // If the vocabulary menu is not visible, perform the click action defined in onClick().
                                 onClick()
                             }
                         }
@@ -301,14 +310,26 @@ private fun chunkText(text: String): List<String> {
         .toList()
 }
 
+/**
+ * Finds sentences containing the specified vocabulary word from a list of paragraphs.
+ *
+ * @param paragraphs A list of strings representing paragraphs of text.
+ * @param vocabulary The vocabulary word to search for within the sentences.
+ * @return A list of sentences that contain the specified vocabulary word.
+ *
+ * This function processes each paragraph by splitting it into sentences based on punctuation marks such as
+ * periods, exclamation marks, and question marks (including both English and Chinese punctuation).
+ * It then filters the sentences to find those containing the vocabulary word, matching the whole word
+ * while ignoring case differences.
+ */
 fun findMatchingSentences(paragraphs: List<String>, vocabulary: String): List<String> {
     return paragraphs
         .flatMap { paragraph ->
-            // 按标点符号分割段落，并保留标点
+            // Split the paragraph by punctuation, keeping punctuation as part of the sentence.
             paragraph.split(Regex("(?<=[.!?。！？])")).map { sentence -> sentence.trim() }
         }
         .filter { sentence ->
-            // 完整单词匹配（忽略大小写）
+            // Filter sentences that contain the vocabulary word as a whole word (case-insensitive).
             Regex("\\b$vocabulary\\b", RegexOption.IGNORE_CASE).containsMatchIn(sentence)
         }
 }

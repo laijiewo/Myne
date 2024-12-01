@@ -25,14 +25,21 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 /**
+ * This is provided by the iFlytek speech evaluation API.
+ *
  * <p>Title: XmlResultParser</p>
- * <p>Description: </p>
+ * <p>Description: A parser for the XML result provided by iFlytek's speech evaluation API.</p>
  * <p>Company: www.iflytek.com</p>
- * @author iflytek
- * @date 2015年1月12日 下午5:21:53
+ * Author: iflytek
+ * Date: January 12, 2015, 5:21:53 PM
  */
 public class XmlResultParser {
 
+    /**
+     * Parse the given XML string into a Result object.
+     * @param xml The XML string representing the evaluation result.
+     * @return The parsed Result object, or null if parsing fails.
+     */
     public Result parse(String xml) {
         if (TextUtils.isEmpty(xml)) {
             return null;
@@ -82,6 +89,11 @@ public class XmlResultParser {
         return null;
     }
 
+    /**
+     * Parse the result details from the XML.
+     * @param pullParser The XML pull parser positioned at the start of the result data.
+     * @return The parsed Result object containing the detailed evaluation results.
+     */
     private Result parseResult(XmlPullParser pullParser) {
         Result result = null;
         // <rec_paper>标签是否已扫描到

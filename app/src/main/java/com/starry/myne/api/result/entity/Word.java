@@ -1,57 +1,55 @@
-/**
- *
- */
 package com.starry.myne.api.result.entity;
 
 import java.util.ArrayList;
 
 /**
+ * This is provided by the iFlytek speech evaluation API.
+ *
  * <p>Title: Word</p>
- * <p>Description: 单词，对应于结果xml中的word标签</p>
+ * <p>Description: Word, corresponding to the word tag in the XML result</p>
  * <p>Company: www.iflytek.com</p>
- * @author iflytek
- * @date 2015年1月12日 下午3:29:30
+ * Author: iflytek
+ * Date: January 12, 2015, 3:29:30 PM
  */
 public class Word {
     /**
-     * 开始帧位置，每帧相当于10ms
+     * Starting frame position, each frame corresponds to 10ms
      */
     public int beg_pos;
     /**
-     * 结束帧位置
+     * Ending frame position
      */
     public int end_pos;
     /**
-     * 单词内容
+     * Word content
      */
     public String content;
     /**
-     * 增漏读信息：0（正确），16（漏读），32（增读），64（回读），128（替换）
+     * Deletion and insertion message: 0 (correct), 16 (omission), 32 (insertion), 64 (repeat), 128 (replacement)
      */
     public int dp_message;
     /**
-     * 单词在全篇索引（en）
+     * Global index of the word (en)
      */
     public int global_index;
     /**
-     * 单词在句子中的索引（en）
+     * Index of the word within the sentence (en)
      */
     public int index;
     /**
-     * 拼音（cn），数字代表声调，5表示轻声，如fen1
+     * Pinyin (cn), number represents tone, 5 indicates neutral tone, e.g., fen1
      */
     public String symbol;
     /**
-     * 时长（单位：帧，每帧相当于10ms）（cn）
+     * Duration (unit: frame, each frame corresponds to 10ms) (cn)
      */
     public int time_len;
     /**
-     * 单词得分（en）
+     * Total score of the word (en)
      */
     public float total_score;
     /**
-     * Word包含的Syll
+     * Syllables included in the word
      */
     public ArrayList<Syll> sylls;
-
 }

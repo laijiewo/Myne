@@ -32,10 +32,21 @@ interface VocabularyDao {
     @Delete
     fun delete(vocabulary: Vocabulary)
 
-
+    /**
+     * Retrieves a Vocabulary object from the database based on its ID.
+     *
+     * @param vocabularyId The unique ID of the vocabulary entry.
+     * @return A Flow emitting the Vocabulary object with the given ID.
+     */
     @Query("SELECT * FROM vocabulary WHERE vocabulary_id = :vocabularyId")
     fun getVocabulary(vocabularyId: Int): Flow<Vocabulary>
 
+    /**
+     * Retrieves the ID of a vocabulary entry based on its word.
+     *
+     * @param vocabulary The vocabulary word to search for.
+     * @return A Flow emitting the ID of the vocabulary if found, otherwise null.
+     */
     @Query("SELECT vocabulary_id FROM vocabulary WHERE vocabulary = :vocabulary LIMIT 1")
     fun getVocabularyId(vocabulary: String): Flow<Int?>
 

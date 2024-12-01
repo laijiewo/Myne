@@ -1,11 +1,9 @@
 package com.starry.myne.ui.screens.sample_sentence.composables
 
-import TextToSpeechHelper
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,7 +38,6 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -54,7 +51,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -63,26 +59,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.iflytek.cloud.SpeechEvaluator
-import com.starry.myne.MainActivity
 import com.starry.myne.R
+import com.starry.myne.api.TextToSpeechHelper
 import com.starry.myne.api.models.Bridge
+import com.starry.myne.api.translateWithDelay
 import com.starry.myne.database.sampleSentence.SampleSentence
 import com.starry.myne.database.vocabulary.Vocabulary
-import com.starry.myne.helpers.getActivity
 import com.starry.myne.helpers.toToast
 import com.starry.myne.ui.common.CustomTopAppBar
 import com.starry.myne.ui.common.NoBooksAvailable
 import com.starry.myne.ui.screens.main.bottomNavPadding
 import com.starry.myne.ui.screens.sample_sentence.viewmodels.SampleSentenceViewModel
-import com.starry.myne.ui.screens.settings.viewmodels.SettingsViewModel
-import com.starry.myne.ui.screens.settings.viewmodels.ThemeMode
 import com.starry.myne.ui.screens.vocabularies.viewmodels.VocabulariesViewModel
 import com.starry.myne.ui.theme.poppinsFont
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
-import com.starry.myne.ui.screens.sample_sentence.composables.SpellingDialog
-import translateWithDelay
-import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
 
 /**
  * Main composable function for the Sample Sentence Screen.
@@ -96,20 +87,24 @@ fun SampleSentenceScreen(
     vocabularyId: Int
 ) {
     val context = LocalContext.current
+
+    // TTS API
     var isTTSReady by remember { mutableStateOf(false) }
     val ttsHelper = remember {
         TextToSpeechHelper(context) { initialized ->
             isTTSReady = initialized
         }
     }
-    val speechEvaluator = SpeechEvaluator.createEvaluator(context, null)
-    val bridge = Bridge(context, speechEvaluator)
     // Cleanup TextToSpeech when this screen is disposed
     DisposableEffect(Unit) {
         onDispose {
             ttsHelper.release()
         }
     }
+
+    // IFLY API
+    val speechEvaluator = SpeechEvaluator.createEvaluator(context, null)
+    val bridge = Bridge(context, speechEvaluator)
 
     val viewModel: SampleSentenceViewModel = hiltViewModel()
     val vocabularyViewModel: VocabulariesViewModel = hiltViewModel()
@@ -148,9 +143,12 @@ fun SampleSentenceScreen(
  * This includes a list of sentences or a placeholder message if no sentences are found.
  *
  * @param viewModel ViewModel managing the data for sample sentences.
+ * @param vocabulariesViewModel ViewModel managing vocabulary data.
  * @param lazyListState State object for controlling the scroll position of the LazyColumn.
  * @param paddingValues Padding values applied to the content.
  * @param vocabularyId The ID of the vocabulary whose sentences are being displayed.
+ * @param textToSpeechHelper Helper object for text-to-speech functionality.
+ * @param bridge Bridge object for handling TTS or other operations related to speech.
  */
 @Composable
 private fun SampleSentenceContents(
@@ -212,6 +210,14 @@ private fun SampleSentenceContents(
     }
 }
 
+/**
+ * Composable function to display a vocabulary card.
+ * The card includes the vocabulary word, its translation, and options for text-to-speech functionality.
+ *
+ * @param vocabulary The vocabulary object containing the word and its translation.
+ * @param textToSpeechHelper Helper object for text-to-speech functionality.
+ * @param bridge Bridge object for handling TTS or other operations related to speech.
+ */
 @Composable
 private fun VocabularyCard(
     vocabulary: Vocabulary,
@@ -376,7 +382,7 @@ private fun VocabularyCard(
  * @param modifier Modifier applied to the item for styling and animations.
  * @param sentence The sentence data to display.
  * @param viewModel ViewModel to handle actions like deleting the sentence.
- * @param settingsVm ViewModel for managing app settings like theme mode.
+ * @param textToSpeechHelper Helper for text-to-speech functionality.
  */
 @Composable
 private fun SampleSentenceLazyItem(
@@ -409,11 +415,13 @@ private fun SampleSentenceLazyItem(
  * Composable function to display the details of a sample sentence in a card format.
  * This includes:
  * - The sample sentence text.
- * - The source information for the sentence.
+ * - The source information for the sentence (e.g., book name).
  * - A button for deleting the sentence.
+ * - A button for text-to-speech functionality.
  *
  * @param sentence The sample sentence text to display.
  * @param source The source or reference of the sentence (e.g., book name).
+ * @param textToSpeechHelper Helper for text-to-speech functionality.
  * @param onDeleteClick Callback triggered when the delete button is clicked.
  */
 @Composable
@@ -432,12 +440,12 @@ private fun SentenceCard(
         color = MaterialTheme.colorScheme.onSurface
     )
     val sampleSentenceTextStyle = commonTextStyle.copy(
-        fontWeight = FontWeight.Bold, // 让样本句子文本加粗显示
-        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f) // 颜色稍深些
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f)
     )
     val sourceBookTextStyle = commonTextStyle.copy(
         fontWeight = FontWeight.Normal,
-        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f) // 颜色稍浅些
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
     )
     val sentenceTranslation = remember { mutableStateOf("") }
 
@@ -578,112 +586,4 @@ private fun SentenceCardButton(
             )
         }
     }
-}
-
-@Composable
-private fun SentenceCard1(
-    sentence: String,
-    source: String,
-    onDeleteClick: () -> Unit
-) {
-    val context = LocalContext.current
-    val commonTextStyle = TextStyle(
-        fontStyle = MaterialTheme.typography.headlineMedium.fontStyle,
-        fontSize = 18.sp,
-        fontFamily = poppinsFont,
-        fontWeight = FontWeight.SemiBold,
-        color = MaterialTheme.colorScheme.onSurface
-    )
-    val sampleSentenceTextStyle = commonTextStyle.copy(
-        fontWeight = FontWeight.Bold, // 让样本句子文本加粗显示
-        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f) // 颜色稍深些
-    )
-    val sourceBookTextStyle = commonTextStyle.copy(
-        fontWeight = FontWeight.Normal,
-        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f) // 颜色稍浅些
-    )
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)
-        ),
-        shape = RoundedCornerShape(8.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(start = 12.dp, end = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(
-                modifier = Modifier.padding(8.dp)
-                    .weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = sentence,
-                        style = sampleSentenceTextStyle,
-                        maxLines = 16,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                Row(modifier = Modifier.offset(y = (-8).dp)) {
-                    Text(
-                        text = "Source Book: $source",
-                        style = sourceBookTextStyle,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                Row(modifier = Modifier.offset(y = (-4).dp)) {
-                    SentenceCardButton(text = stringResource(id = R.string.word_book_delete_button),
-                        icon = Icons.Outlined.Delete,
-                        onClick = { onDeleteClick() })
-                }
-                Spacer(modifier = Modifier.height(2.dp))
-            }
-            Column {
-                IconButton(
-                    onClick = {
-                    },
-                    modifier = Modifier.padding(8.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_speaker),
-                        contentDescription = "speaker_icon"
-                    )
-                }
-            }
-        }
-    }
-}
-
-/**
- * Preview function to visualize how the `SentenceCard` composable will look in isolation.
- * Provides multiple sample cards with mock data for testing the design and layout.
- */
-@Preview
-@Composable
-fun PreviewSentenceCard() {
-    Column {
-        SentenceCard1(
-            sentence = "agoiegioaehaeghhae",
-            source = "agnoai",
-        ) { }
-//        VocabularyCard(
-//            Vocabulary(
-//                vocabulary = "Hello",
-//                srcLang = "safw",
-//                tarLang = "rewf",
-//                translation = "nihao"
-//            )
-//        )
-    }
-
 }

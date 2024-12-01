@@ -1,51 +1,50 @@
-/**
- *
- */
 package com.starry.myne.api.result.entity;
 
 import java.util.ArrayList;
 
 /**
+ * This is provided by the iFlytek speech evaluation API.
+ *
  * <p>Title: Syll</p>
- * <p>Description: 音节，对应于结果xml中的Syll标签</p>
+ * <p>Description: Syllable, corresponding to the Syll tag in the XML result</p>
  * <p>Company: www.iflytek.com</p>
- * @author iflytek
- * @date 2015年1月12日 下午3:49:51
+ * Author: iflytek
+ * Date: January 12, 2015, 3:49:51 PM
  */
 public class Syll {
     /**
-     * 开始帧位置，每帧相当于10ms
+     * Starting frame position, each frame corresponds to 10ms
      */
     public int beg_pos;
     /**
-     * 结束帧位置
+     * Ending frame position
      */
     public int end_pos;
     /**
-     * 音节内容
+     * Syllable content
      */
     public String content;
     /**
-     * 拼音（cn），数字代表声调，5表示轻声，如fen1
+     * Pinyin (cn), number represents tone, 5 indicates neutral tone, e.g., fen1
      */
     public String symbol;
     /**
-     * 增漏读信息：0（正确），16（漏读），32（增读），64（回读），128（替换）
+     * Deletion and insertion message: 0 (correct), 16 (omission), 32 (insertion), 64 (repeat), 128 (replacement)
      */
     public int dp_message;
     /**
-     * 时长（单位：帧，每帧相当于10ms）（cn）
+     * Duration (unit: frame, each frame corresponds to 10ms) (cn)
      */
     public int time_len;
     /**
-     * Syll包含的音节
+     * Phones included in the syllable
      */
     public ArrayList<Phone> phones;
 
     /**
-     * 获取音节的标准音标（en）
+     * Get the standard phonetic symbol of the syllable (en)
      *
-     * @return 标准音标
+     * @return Standard phonetic symbol
      */
     public String getStdSymbol() {
         String stdSymbol = "";
