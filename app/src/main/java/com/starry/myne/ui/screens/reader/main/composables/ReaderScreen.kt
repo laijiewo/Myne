@@ -306,7 +306,7 @@ private fun VocabularyMenu(
             translation.value = result
             setTranslation(translation.value)
         } else {
-            ("translate failed").toToast(context)
+            println("translate failed")
         }
     }
 

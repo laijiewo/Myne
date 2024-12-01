@@ -484,7 +484,7 @@ private fun SentenceCard(
                                 if (result != null) {
                                     sentenceTranslation.value = result
                                 } else {
-                                    ("translate failed").toToast(context)
+                                    println("translate failed")
                                 }
                             }
                         },

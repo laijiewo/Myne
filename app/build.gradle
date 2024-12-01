@@ -93,6 +93,7 @@ aboutLibraries {
 
 
 dependencies {
+    implementation files('..\\libs\\Msc.jar')
     def composeBom = platform('androidx.compose:compose-bom:2024.09.03')
     implementation composeBom
     androidTestImplementation composeBom
@@ -164,4 +165,10 @@ dependencies {
     // debug components.
     debugImplementation "androidx.compose.ui:ui-tooling"
     debugImplementation "androidx.compose.ui:ui-test-manifest"
+
+    //Ballon Library
+    implementation("com.github.skydoves:balloon-compose:1.6.10")
+
+    // GSON Dependency
+    implementation 'com.google.code.gson:gson:2.10.1'
 }
