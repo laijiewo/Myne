@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.GTranslate
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -68,6 +69,7 @@ import com.starry.myne.api.models.Bridge
 import com.starry.myne.database.sampleSentence.SampleSentence
 import com.starry.myne.database.vocabulary.Vocabulary
 import com.starry.myne.helpers.getActivity
+import com.starry.myne.helpers.toToast
 import com.starry.myne.ui.common.CustomTopAppBar
 import com.starry.myne.ui.common.NoBooksAvailable
 import com.starry.myne.ui.screens.main.bottomNavPadding
@@ -79,6 +81,7 @@ import com.starry.myne.ui.theme.poppinsFont
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
 import com.starry.myne.ui.screens.sample_sentence.composables.SpellingDialog
+import translateWithDelay
 import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
 
 /**
@@ -159,8 +162,6 @@ private fun SampleSentenceContents(
     textToSpeechHelper: TextToSpeechHelper,
     bridge: Bridge
 ) {
-    val context = LocalContext.current
-    val settingsVm = (context.getActivity() as MainActivity).settingsViewModel
     val sentences = viewModel.getAllSampleSentence(vocabularyId).observeAsState(listOf()).value
     val vocabulary =
         vocabulariesViewModel.getVocabulary(vocabularyId).collectAsState(initial = null).value
@@ -438,6 +439,7 @@ private fun SentenceCard(
         fontWeight = FontWeight.Normal,
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f) // 颜色稍浅些
     )
+    val sentenceTranslation = remember { mutableStateOf("") }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -463,16 +465,45 @@ private fun SentenceCard(
                     Text(
                         text = sentence,
                         style = sampleSentenceTextStyle,
-                        maxLines = 16,
+                        maxLines = 30,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
                     )
+                    IconButton(
+                        onClick = {
+                            sentenceTranslation.value = "translating...."
+                            translateWithDelay(text = sentence, targetLanguage = "zh") { result ->
+                                if (result != null) {
+                                    sentenceTranslation.value = result
+                                } else {
+                                    ("translate failed").toToast(context)
+                                }
+                            }
+                        },
+                        modifier = Modifier.padding(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.GTranslate,
+                            contentDescription = "translate"
+                        )
+                    }
+                }
+                if (sentenceTranslation.value != "") {
+                    Row(modifier = Modifier.offset(y = (-8).dp)) {
+                        Text(
+                            text = "Translation: ${sentenceTranslation.value}",
+                            style = sourceBookTextStyle,
+                            maxLines = 5,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
                 Row(modifier = Modifier.offset(y = (-8).dp)) {
                     Text(
                         text = "Source Book: $source",
                         style = sourceBookTextStyle,
-                        maxLines = 1,
+                        maxLines = 5,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
                     )

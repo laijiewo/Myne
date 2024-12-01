@@ -1,10 +1,5 @@
 package com.starry.myne.ui.screens.vocabularies.composables
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -27,41 +22,24 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -70,25 +48,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.starry.myne.MainActivity
 import com.starry.myne.R
 import com.starry.myne.database.vocabulary.Vocabulary
-import com.starry.myne.helpers.book.BookLanguage
-import com.starry.myne.helpers.getActivity
-import com.starry.myne.helpers.isScrollingUp
-import com.starry.myne.helpers.weakHapticFeedback
 import com.starry.myne.ui.common.CustomTopAppBar
 import com.starry.myne.ui.common.NoBooksAvailable
 import com.starry.myne.ui.navigation.Screens
 import com.starry.myne.ui.screens.main.bottomNavPadding
 import com.starry.myne.ui.screens.sample_sentence.viewmodels.SampleSentenceViewModel
-import com.starry.myne.ui.screens.settings.viewmodels.SettingsViewModel
-import com.starry.myne.ui.screens.settings.viewmodels.ThemeMode
 import com.starry.myne.ui.screens.vocabularies.viewmodels.VocabulariesViewModel
 import com.starry.myne.ui.theme.poppinsFont
-import kotlinx.coroutines.launch
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
 
@@ -104,16 +73,10 @@ import me.saket.swipe.SwipeableActionsBox
  */
 @Composable
 fun VocabulariesScreen(navController: NavController) {
-    val view = LocalView.current
-    val context = LocalContext.current
     val viewModel: VocabulariesViewModel = hiltViewModel()
     val sentenceViewModel: SampleSentenceViewModel = hiltViewModel()
-
     val snackBarHostState = remember { SnackbarHostState() }
-    val coroutineScope = rememberCoroutineScope()
     val lazyListState = rememberLazyListState()
-
-    val showCreateNewVocabularyList = remember { mutableStateOf(false) }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackBarHostState) },
@@ -126,43 +89,6 @@ fun VocabulariesScreen(navController: NavController) {
                 headerText = stringResource(id = R.string.word_book_header),
                 iconRes = R.drawable.ic_nav_word_books
             )
-        },
-        floatingActionButton = {
-            val density = LocalDensity.current
-            AnimatedVisibility(
-                visible = !showCreateNewVocabularyList.value && lazyListState.isScrollingUp(),
-                enter = slideInVertically {
-                    with(density) { 40.dp.roundToPx() }
-                } + fadeIn(),
-                exit = fadeOut(
-                    animationSpec = keyframes {
-                        this.durationMillis = 120
-                    }
-                )
-            ) {
-                ExtendedFloatingActionButton(
-                    onClick = {
-                        view.weakHapticFeedback()
-                        showCreateNewVocabularyList.value = true
-                    },
-                    modifier = Modifier
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Add,
-                        contentDescription = stringResource(id = R.string.import_button_desc),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(id = R.string.import_button_text),
-                        fontWeight = FontWeight.Medium,
-                        fontFamily = poppinsFont,
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-
-                }
-            }
         }
     ) { paddingValues ->
         VocabularyContents(
@@ -172,35 +98,7 @@ fun VocabulariesScreen(navController: NavController) {
             paddingValues = paddingValues,
             navController = navController,
         )
-
-        if (showCreateNewVocabularyList.value) {
-            VocabularyImportScreen(
-                onSaveClick = { word, sourceLang, targetLang, translation ->
-                    viewModel.insertNewVocabularyToDB(
-                        context = word,
-                        srcLang = sourceLang,
-                        tarLang = targetLang,
-                        translation = translation,
-                        onComplete = {
-                            coroutineScope.launch {
-                                snackBarHostState.showSnackbar(
-                                    message = "Vocabulary saved successfully",
-                                    actionLabel = context.getString(R.string.ok),
-                                    duration = SnackbarDuration.Short
-                                )
-                            }
-                        }
-                    )
-                    showCreateNewVocabularyList.value = false
-                },
-                onCancelClick = {
-                    showCreateNewVocabularyList.value = false
-                }
-            )
-        }
-
     }
-
 }
 
 /**
@@ -222,10 +120,7 @@ private fun VocabularyContents(
     paddingValues: PaddingValues,
     navController: NavController
 ) {
-    val context = LocalContext.current
-    val settingsVm = (context.getActivity() as MainActivity).settingsViewModel
     val vocabularies = viewModel.allVocabulary.observeAsState(listOf()).value
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -251,7 +146,6 @@ private fun VocabularyContents(
                         vocabulary = item,
                         viewModel = viewModel,
                         sampleSentenceViewModel = sampleSentenceViewModel,
-                        settingsVm = settingsVm,
                         navController = navController
                     )
                 }
@@ -281,7 +175,6 @@ private fun VocabularyLazyItem(
     vocabulary: Vocabulary,
     viewModel: VocabulariesViewModel,
     sampleSentenceViewModel: SampleSentenceViewModel,
-    settingsVm: SettingsViewModel,
     navController: NavController
 ) {
     // Swipe actions to delete word.
@@ -461,170 +354,6 @@ private fun VocabularyCardButton(
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
             )
-        }
-    }
-}
-
-/**
- * Composable function to display a screen for importing new vocabulary items.
- * This screen includes:
- * - Input fields for the word, source language, target language, and translation.
- * - Buttons to save or cancel the action.
- *
- * @param onSaveClick Callback triggered when the "Save" button is clicked.
- *        It provides the entered word, source language, target language, and translation as parameters.
- * @param onCancelClick Callback triggered when the "Cancel" button is clicked.
- */
-@Composable
-fun VocabularyImportScreen(
-    onSaveClick: (String, String, String, String) -> Unit,
-    onCancelClick: () -> Unit
-) {
-    val word = remember { mutableStateOf("") }
-    val sourceLanguage = remember { mutableStateOf<BookLanguage?>(null) }
-    val targetLanguage = remember { mutableStateOf<BookLanguage?>(null) }
-    val translation = remember { mutableStateOf("") }
-
-    val availableLanguages = BookLanguage.getAllLanguages().drop(1)
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(
-            modifier = Modifier
-                .size(400.dp)
-                .width(420.dp)
-                .padding(16.dp)
-                .background(color = Color.DarkGray),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(8.dp))
-
-            TextField(
-                value = word.value,
-                onValueChange = { word.value = it },
-                label = { Text("Word") },
-                modifier = Modifier.width(300.dp),
-                singleLine = true
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            LanguageDropdownMenu(
-                label = "Source Language",
-                selectedLanguage = sourceLanguage.value,
-                onLanguageSelected = { selected -> sourceLanguage.value = selected },
-                availableLanguages = availableLanguages
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            LanguageDropdownMenu(
-                label = "Target Language",
-                selectedLanguage = targetLanguage.value,
-                onLanguageSelected = { selected -> targetLanguage.value = selected },
-                availableLanguages = availableLanguages
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            TextField(
-                value = translation.value,
-                onValueChange = { translation.value = it },
-                label = { Text("Translation") },
-                modifier = Modifier.width(300.dp),
-                singleLine = true
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Button(
-                    onClick = {
-                        if (word.value.isNotEmpty() && sourceLanguage.value != null && targetLanguage.value != null && translation.value.isNotEmpty()) {
-                            onSaveClick(
-                                word.value,
-                                sourceLanguage.value!!.name,
-                                targetLanguage.value!!.name,
-                                translation.value
-                            )
-                        } else {
-                        }
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Save")
-                }
-
-                Spacer(modifier = Modifier.width(6.dp))
-
-                Button(
-                    onClick = { onCancelClick() },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Cancel")
-                }
-            }
-        }
-    }
-}
-
-/**
- * Composable function to create a dropdown menu for selecting a language.
- * It displays a TextField for the selected language and expands a dropdown menu
- * when clicked, allowing the user to choose from a list of available languages.
- *
- * @param label The label for the TextField.
- * @param selectedLanguage The currently selected language.
- * @param onLanguageSelected Lambda function triggered when a language is selected.
- * @param availableLanguages A list of languages that can be selected from the dropdown.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun LanguageDropdownMenu(
-    label: String,
-    selectedLanguage: BookLanguage?,
-    onLanguageSelected: (BookLanguage) -> Unit,
-    availableLanguages: List<BookLanguage>
-) {
-    var expanded by remember { mutableStateOf(false) }
-    val selectedText = selectedLanguage?.name ?: "Select $label"
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded }
-    ) {
-        TextField(
-            value = selectedText,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(label) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier
-                .menuAnchor()
-                .width(300.dp),
-            singleLine = true
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            availableLanguages.forEach { language ->
-                DropdownMenuItem(
-                    text = { Text(language.name) },
-                    onClick = {
-                        onLanguageSelected(language)
-                        expanded = false
-                    }
-                )
-            }
         }
     }
 }

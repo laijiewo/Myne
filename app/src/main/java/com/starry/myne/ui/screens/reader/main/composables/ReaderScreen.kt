@@ -305,7 +305,7 @@ private fun VocabularyMenu(
             translation.value = result
             setTranslation(translation.value)
         } else {
-            println("翻译失败")
+            ("translate failed").toToast(context)
         }
     }
     AnimatedVisibility(

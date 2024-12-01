@@ -77,67 +77,7 @@ class SampleSentenceViewModel @Inject constructor(
             println("No sentences to delete!")
         }
     }
-
-    fun insertSampleData() {
-        val sampleSentences = listOf(
-            SampleSentence(
-                sentence = "The quick brown fox jumps over the lazy dog.",
-                resource = "English Grammar Book",
-                vocabularyId = 1
-            ),
-            SampleSentence(
-                sentence = "A journey of a thousand miles begins with a single step.",
-                resource = "Inspirational Quotes",
-                vocabularyId = 1
-            ),
-            SampleSentence(
-                sentence = "To be or not to be, that is the question.",
-                resource = "Shakespeare's Hamlet",
-                vocabularyId = 2
-            ),
-            SampleSentence(
-                sentence = "An apple a day keeps the doctor away.",
-                resource = "Old English Proverb",
-                vocabularyId = 2
-            ),
-            SampleSentence(
-                sentence = "Do not go gentle into that good night.",
-                resource = "Poetry Anthology",
-                vocabularyId = 2
-            ),
-            SampleSentence(
-                sentence = "Actions speak louder than words.",
-                resource = "Proverbs Collection",
-                vocabularyId = 1
-            ),
-            SampleSentence(
-                sentence = "Knowledge is power.",
-                resource = "Educational Material",
-                vocabularyId = 2
-            ),
-            SampleSentence(
-                sentence = "Time and tide wait for no man.",
-                resource = "Historical Writings",
-                vocabularyId = 1
-            ),
-            SampleSentence(
-                sentence = "The pen is mightier than the sword.",
-                resource = "Classical Literature",
-                vocabularyId = 3
-            ),
-            SampleSentence(
-                sentence = "All that glitters is not gold.",
-                resource = "Shakespeare's Merchant of Venice",
-                vocabularyId = 3
-            )
-        )
-
-        viewModelScope.launch(Dispatchers.IO) {
-            sampleSentences.forEach { sentence ->
-                sampleSentenceDao.insert(sentence)
-            }
-        }
-    }
+    
     /**
      * Inserts a new sample sentence into the database.
      * Calls the provided `onComplete` callback after insertion is complete.
